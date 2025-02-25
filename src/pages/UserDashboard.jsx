@@ -1,19 +1,20 @@
 import React,{useState} from "react";
-import ProfileImage from "../assets/profile.png"
+import ProfileImage from "../assets/ProfilePicture.jpeg"
 import { TbCoinTaka } from "react-icons/tb"; // Example for financial icon
 import { MdEmail, MdDateRange, MdPhone } from "react-icons/md"; // Example for email, date, and phone icons
 import { FaUser, FaIdCard } from "react-icons/fa"; // Example for user and ID icons
+import { MdOutlineQrCode } from "react-icons/md";
 
 const UserDashboard = () => {
   const [showSecondContainer, setShowSecondContainer] = useState(false);
 
     const profileData = [
         { title: "Balance", value: "1.33 BDT", icon: <TbCoinTaka /> },
-        { title: "E-mail", value: "sohel@gmail.com", icon: <MdEmail /> },
-        { title: "Telegram Number", value: "01876404904", icon: <MdPhone /> },
+        { title: "E-mail", value: "john@gmail.com", icon: <MdEmail /> },
+        { title: "Telegram Number", value: "01888885555", icon: <MdPhone /> },
         { title: "Date Of Birth", value: "02-01-2024", icon: <MdDateRange /> },
         { title: "Gender", value: "Male", icon: <FaUser /> },
-        { title: "NID Verification", value: "Approved", icon: <FaIdCard /> },
+        { title: "Permanent Ticket", value: "View", icon: <MdOutlineQrCode /> },
     ];
     const features = [
         { label: "Recharge", icon: "💳", color: "text-red-500" },
@@ -35,20 +36,20 @@ const UserDashboard = () => {
                         <img
                             src={ProfileImage} // Replace with actual profile image path
                             alt="Profile"
-                            className="w-32 h-32 lg:w-44 lg:h-44 rounded-full border-4 border-teal-800"
+                            className="w-32 h-32 lg:w-44 lg:h-44 rounded-full border-4 border-teal-800 object-cover"
                         />
-                        <h1 className="text-4xl font-semibold text-white ">Ahmed Sohel</h1>
+                        <h1 className="text-4xl font-semibold text-white ">John</h1>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
                             {profileData.map((item, idx) => (
                                 <div
                                     key={idx}
-                                    className="flex items-center bg-gradient-to-r from-teal-700 to-teal-600 border-2 border-yellow-300 p-4 rounded-lg shadow-lg transform hover:scale-105 transition duration-300"
+                                    className="flex items-center bg-teal-700 border-2 border-white p-4 rounded-lg shadow-lg transform hover:scale-105 transition duration-300"
                                 >
-                                    <div className="text-4xl text-yellow-400">
+                                    <div className="text-4xl text-orange-00">
                                         {item.icon}
                                     </div>
-                                    <div className="ml-4 text-start">
-                                        <h2 className="text-lg font-bold text-yellow-200">{item.title}</h2>
+                                    <div className="ml-4  text-start">
+                                        <h2 className="text-lg font-bold text-[#eff4ec]">{item.title}</h2>
                                         <p className="text-sm font-medium text-violet-100">{item.value}</p>
                                     </div>
                                 </div>
