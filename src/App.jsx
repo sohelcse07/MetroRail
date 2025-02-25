@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'; // Import Route
+import { HashRouter as Router, Routes, Route } from 'react-router-dom'; // Import Route
 import Navbar from './components/Navbar/Navbar';
 import Homepage from './components/Home/Homepage'; // Use only one import for Homepage
 import UserDashboard from './pages/UserDashboard';
@@ -8,7 +8,7 @@ import PaymentStatus from './pages/PaymentStatus';
 
 function App() {
   return (
-    <Router> {/* Wrap the application in a Router */}
+    <Router basename='/'> {/* Wrap the application in a Router */}
       <Navbar />
       <Routes>
         {/* Add a path for the Route */}
