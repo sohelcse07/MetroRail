@@ -1,18 +1,20 @@
 import { useState, useRef } from "react";
-import { useLocation } from "react-router-dom"; // React Router equivalent of usePathname
-import { Link } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
+import metroIcon from "../../assets/metroIcon.png";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Navbar = () => {
   const navItems = [
     { name: "Home", path: "/" },
-    { name: "Notification", path: "/notfication" },
-    { name: "Permanent ticket", path: "/permanent-ticket" },
+    { name: "Notification", path: "/notification" },
+    { name: "Permanent Ticket", path: "/permanent-ticket" },
     { name: "Profile", path: "/profile" },
-    { name: "Sign in", path: "/login" },
+    { name: "Sign In", path: "/login" },
   ];
 
-  const location = useLocation(); // Get the current path
+  const location = useLocation();
   const [hoverPosition, setHoverPosition] = useState({ left: 0, width: 0 });
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navRef = useRef(null);
 
   const handleMouseEnter = (e) => {
@@ -23,89 +25,42 @@ const Navbar = () => {
     }
   };
 
-  if (location.pathname === "/userdashboard") {
-    return null;
-  }
+  if (location.pathname === "/userdashboard") return null;
 
   return (
-    <nav className="bg-gray-900  h-24 border-b border-slate-800 text-white w-full py-3 shadow-md">
-      <div className="w-full mx-auto flex justify-between sm:justify-around items-center px-[calc(10%+1rem)] sm:px-0">
-      <div className="text-4xl w-36 h-auto font-bold mt-2">
-  <Link to="/" className="text-teal-400 hover:text-teal-300">
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 600 250"
-      className="w-full h-full"
-    >
-      {/* Body of the Bullet Train */}
-      <path
-        d="M10 150 Q80 60 250 60 H550 Q580 60 580 100 V150 H10 Z"
-        fill="#181c1c"
-        stroke="teal"
-        strokeWidth="6"
-      />
+    <nav className="fixed top-0 left-0 w-full bg-white  z-50 md:px-10">
+      <div className="flex items-center justify-between px-6 md:px-12 h-20">
+        {/* Logo */}
+        <Link to="/">
+          <img src={metroIcon} alt="Metro Icon" className="w-24 h-20" />
+        </Link>
 
-      {/* Train Windows */}
-      <rect x="270" y="90" width="50" height="35" rx="5" ry="5" fill="cyan" />
-      <rect x="340" y="90" width="50" height="35" rx="5" ry="5" fill="cyan" />
-      <rect x="410" y="90" width="50" height="35" rx="5" ry="5" fill="cyan" />
-      <rect x="480" y="90" width="50" height="35" rx="5" ry="5" fill="cyan" />
-
-      {/* Headlight */}
-      <circle cx="560" cy="110" r="10" fill="yellow" />
-
-      {/* Train Tracks */}
-      <line x1="20" y1="160" x2="570" y2="160" stroke="teal" strokeWidth="4" />
-      <line x1="20" y1="175" x2="570" y2="175" stroke="teal" strokeWidth="4" />
-
-      {/* Wheels */}
-      <circle cx="100" cy="190" r="12" fill="gray" />
-      <circle cx="250" cy="190" r="12" fill="gray" />
-      <circle cx="400" cy="190" r="12" fill="gray" />
-      <circle cx="550" cy="190" r="12" fill="gray" />
-
-      {/* Train Name */}
-      <text
-        x="100"
-        y="240"
-        fill="teal"
-        fontSize="4rem"
-        fontFamily="Arial"
-        fontWeight="bold"
-      >
-        Metro Rail
-      </text>
-    </svg>
-  </Link>
-</div>
-
-
+        {/* Mobile Menu Button */}
         <button
-          className="md:hidden text-2xl text-white focus:outline-none"
+          className="md:hidden text-3xl text-gray-800 focus:outline-none"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           aria-label="Toggle Menu"
         >
-          &#9776;
+          {isMobileMenuOpen ? "✖" : "☰"}
         </button>
 
-        <ul
-          ref={navRef}
-          className="hidden md:flex relative lg:-right-24 xl:-right-32 space-x-4 text-center"
-        >
-          <div
-            className="absolute top-0 h-full border-b border-b-slate-200 underline opacity-65 rounded-sm transition-all duration-300"
-            style={{ left: hoverPosition.left, width: hoverPosition.width }}
-          ></div>
-
+        {/* Desktop Navigation */}
+        <ul ref={navRef} className="hidden md:flex relative space-x-6">
+          {/* Hover Indicator */}
+          <motion.div
+            className="absolute bottom-0 h-0.5 bg-teal-500 rounded-sm transition-all duration-300"
+            animate={{ left: hoverPosition.left, width: hoverPosition.width }}
+          />
           {navItems.map((item, index) => (
             <li
               key={index}
-              className="relative z-10"
+              className="relative"
               onMouseEnter={handleMouseEnter}
               onMouseLeave={() => setHoverPosition({ left: 0, width: 0 })}
             >
               <Link
                 to={item.path}
-                className="block px-4 py-2 text-white hover:text-teal-500 transition"
+                className="px-4 py-2 text-gray-800 hover:text-teal-500 transition duration-300"
               >
                 {item.name}
               </Link>
@@ -113,6 +68,33 @@ const Navbar = () => {
           ))}
         </ul>
       </div>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ y: "-100%", opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: "-100%", opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="absolute top-20 left-0 w-full bg-white shadow-lg border-t md:hidden"
+          >
+            <ul className="flex flex-col text-center py-4 space-y-3">
+              {navItems.map((item, index) => (
+                <li key={index}>
+                  <Link
+                    to={item.path}
+                    className="block py-3 text-gray-800 hover:text-teal-500 transition duration-300"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {item.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </nav>
   );
 };
