@@ -8,7 +8,7 @@ const HomeSection = () => {
   return (
     <div className="flex flex-col relative top-10 md:flex-row items-center justify-between bg-white  min-h-screen">
       {/* Booking Form */}
-      <div className=" w-full md:w-1/3 mx-12">
+      <div className=" w-full md:w-1/3 mx-12 z-50">
        <MetroForm/>
       </div>
 
@@ -36,8 +36,8 @@ const HomeSection = () => {
          
           <motion.div
             initial={{ x: "100%" }}
-            animate={{ x: "-0.5%" }}
-            transition={{ ease: "linear", duration: 2, }}
+            animate={{ x: "-150%" }}
+            transition={{ ease: "linear", duration: 5,repeat:Infinity }}
             className="relative flex items-end justify-center w-full h-96 z-20"
           >
             <TrainSvg />
