@@ -4,6 +4,7 @@ import { TbCoinTaka } from "react-icons/tb"; // Example for financial icon
 import { MdEmail, MdDateRange, MdPhone } from "react-icons/md"; // Example for email, date, and phone icons
 import { FaUser, FaIdCard } from "react-icons/fa"; // Example for user and ID icons
 import { MdOutlineQrCode } from "react-icons/md";
+import LeftSidePanel from "../components/LeftSidePanel";
 
 const UserDashboard = () => {
   const [showSecondContainer, setShowSecondContainer] = useState(false);
@@ -27,6 +28,7 @@ const UserDashboard = () => {
     ];
     return (
          <div className="min-h-screen  relative text-white">
+            <LeftSidePanel/>
     
             <div className="container mx-auto px-4 py-6 lg:py-12">
                 

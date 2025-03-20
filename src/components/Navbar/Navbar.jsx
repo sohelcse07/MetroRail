@@ -8,7 +8,7 @@ const Navbar = () => {
     { name: "Home", path: "/" },
     { name: "Notification", path: "/notification" },
     { name: "Permanent Ticket", path: "/permanent-ticket" },
-    { name: "Profile", path: "/profile" },
+    { name: "Profile", path: "/dashboard" },
     { name: "Sign In", path: "/login" },
   ];
 
@@ -25,7 +25,7 @@ const Navbar = () => {
     }
   };
 
-  if (location.pathname === "/userdashboard") return null;
+  if (location.pathname === "/userdashboard" || location.pathname.startsWith("/dashboard") ) return null;
 
   return (
     <nav className="fixed top-0 left-0 w-full bg-white  z-50 md:px-10">
