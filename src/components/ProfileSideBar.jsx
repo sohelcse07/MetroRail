@@ -6,7 +6,7 @@ import avatar from "../assets/profile.png"; // Update the path as needed
 
 const ProfileSidebar = ({ onClose, profileInfo }) => {
   return (
-    <div className="fixed inset-y-0 right-0 w-64 bg-white shadow-lg">
+    <div className="fixed inset-y-0 right-0 w-64 bg-white shadow-lg z-50">
       {/* Close Button */}
       <div className="p-4 flex justify-between items-center border-b bg-primary text-white">
         <h2 className="text-lg font-semibold">Profile Info</h2>
@@ -53,9 +53,20 @@ const ProfileSidebar = ({ onClose, profileInfo }) => {
                 <p className="text-sm text-success">Telegram</p>
                 <p className="text-sm text-gray-800">{profileInfo.telegram}</p>
               </div>
+
+              {/* Date of Birth */}
+              <div className="p-3 bg-purple-100 rounded-lg">
+                <p className="text-sm text-purple-600">Date of Birth</p>
+                <p className="text-sm text-gray-800">{profileInfo.dateOfBirth}</p>
+              </div>
+
+              {/* Gender */}
+              <div className="p-3 bg-pink-100 rounded-lg">
+                <p className="text-sm text-pink-600">Gender</p>
+                <p className="text-sm text-gray-800">{profileInfo.gender}</p>
+              </div>
             </div>
           </div>
-
         </div>
       </div>
     </div>

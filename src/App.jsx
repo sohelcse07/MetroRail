@@ -2,7 +2,7 @@ import React from 'react';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom'; // Import Route
 import Navbar from './components/Navbar/Navbar';
 import Homepage from './components/Home/Homepage'; // Use only one import for Homepage
-import LoginScreen from './components/LoginScreen';
+import LoginScreen from './components/AuthScreen';
 import PaymentStatus from './pages/PaymentStatus';
 import DashboardLayout from './pages/DashboardLayout';
 import BalancePage from './pages/components/BalancePage';

@@ -28,10 +28,10 @@ const DashboardLayout = () => {
   };
 
   const profileInfo = {
-    name: "John Doe",
-    email: "john.doe@example.com",
+    name: "Sohel Matubber",
+    email: "sohel@gmail.com",
     nid: "9876543210987",
-    telegram: "@johndoe",
+    telegram: "@sohel",
   };
 
   return (
