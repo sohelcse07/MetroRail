@@ -13,6 +13,7 @@ import HelpPage from './pages/components/HelpPage';
 import SettingsPage from './pages/components/SettingPage';
 import TravelHistory from './pages/components/TravelHistory';
 import DashHomePage from './pages/components/DashHomePage';
+import MetroFooter from './components/MetroFooter';
 
 function App() {
   return (
@@ -43,6 +44,7 @@ function App() {
           <Route path="help" element={<HelpPage />} />
         </Route>
       </Routes>
+      <MetroFooter/>
     </Router>
   );
 }
