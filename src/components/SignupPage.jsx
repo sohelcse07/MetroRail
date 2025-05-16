@@ -1,158 +1,244 @@
 import React, { useState } from "react";
-import { FaEye, FaEyeSlash, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const SignupPage = ({ switchToLogin }) => {
+  const [formData, setFormData] = useState({
+    phone_number: "",
+    password: "",
+    confirm_password: "",
+  });
+
+  const [errors, setErrors] = useState({
+    phone_number: "",
+    password: "",
+    confirm_password: "",
+  });
+
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+  const navigate = useNavigate();
+  const {register}=useAuth();
+
+  const handlePhoneChange = (e) => {
+    let value = e.target.value.replace(/\D/g, ""); // only digits
+
+    // Remove leading 0
+    if (value.startsWith("0")) {
+      value = value.substring(1);
+    }
+
+    // Limit to 10 digits
+    if (value.length > 10) {
+      value = value.slice(0, 10);
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      phone_number: value,
+    }));
+
+    setErrors((prev) => ({
+      ...prev,
+      phone_number: "",
+    }));
+  };
+
+  const validatePassword = (password) => {
+    const hasMinLength = password.length >= 6;
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    let passwordError = "";
+
+    if (!hasMinLength && !hasSpecialChar) {
+      passwordError =
+        "Password must be at least 6 characters and contain 1 special character";
+    } else if (!hasMinLength) {
+      passwordError = "Password must be at least 6 characters long";
+    } else if (!hasSpecialChar) {
+      passwordError = "Password must contain at least 1 special character";
+    }
+
+    setErrors((prev) => ({
+      ...prev,
+      password: passwordError,
+    }));
+
+    return passwordError === "";
+  };
+
+  const validateConfirmPassword = (confirmPassword) => {
+    const match = confirmPassword === formData.password;
+    setErrors((prev) => ({
+      ...prev,
+      confirm_password: match ? "" : "Passwords do not match",
+    }));
+    return match;
+  };
 
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
   };
 
-  const handleNextStep = () => {
-    if (currentStep < 4) setCurrentStep(currentStep + 1);
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
-  const handlePreviousStep = () => {
-    if (currentStep > 1) setCurrentStep(currentStep - 1);
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setMessage("");
+
+    const isPasswordValid = validatePassword(formData.password);
+    const isConfirmValid = validateConfirmPassword(formData.confirm_password);
+
+    const phoneValid = formData.phone_number.length === 10;
+    if (!phoneValid) {
+      setErrors((prev) => ({
+        ...prev,
+        phone_number: "Phone number must be 10 digits (excluding +880)",
+      }));
+    }
+
+    if (!isPasswordValid || !isConfirmValid || !phoneValid) return;
+
+    setLoading(true);
+
+    const fullPhone = "+880" + formData.phone_number;
+
+    try {
+      const response =await register( {
+          phone_number: fullPhone,
+          password: formData.password,
+          confirm_password: formData.confirm_password,
+        })
+       
+
+      setMessage("✅ Registration successful!");
+      setTimeout(() => navigate("/login"), 1500);
+    } catch (error) {
+      setMessage(
+        "❌ Registration failed: " +
+          (error.response?.data?.phone_number?.[0] || "Try again.")
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen p-4">
-      <div className="relative backdrop-blur-md bg-white/90 border border-gray-300 shadow-2xl rounded-2xl overflow-hidden w-full max-w-2xl p-8">
-        
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-              <div className="h-2 bg-gradient-to-r from-teal-400 to-blue-500 transition-all duration-300" style={{ width: `${(currentStep / 4) * 100}%` }}></div>
-            </div>
-            <span className="ml-4 text-sm font-semibold text-gray-700">
-              Step {currentStep} of 4
-            </span>
+    <div className="flex items-center justify-center min-h-screen p-4 bg-gray-50">
+      <div className="bg-white p-8 rounded-xl shadow-xl w-full max-w-md">
+        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
+          Create Account
+        </h2>
+
+        {message && (
+          <div
+            className={`text-sm mb-4 font-semibold text-center ${
+              message.startsWith("✅") ? "text-green-600" : "text-red-600"
+            }`}
+          >
+            {message}
           </div>
-        </div>
+        )}
 
-        {/* Form */}
-        <form className="flex flex-col space-y-6">
-          {currentStep === 1 && (
-            <>
-              <input 
-                type="text" 
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all" 
-                placeholder="Username" 
-              />
-              <input 
-                type="email" 
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all" 
-                placeholder="Your Email" 
-              />
-            </>
+        <form onSubmit={handleRegister} className="space-y-4">
+          {/* Phone number input */}
+          <div className="relative flex">
+            <span className="flex items-center px-3 bg-gray-100 border border-r-0 border-gray-300 rounded-l-lg text-gray-600">
+              +880
+            </span>
+            <input
+              type="tel"
+              name="phone_number"
+              value={formData.phone_number}
+              onChange={handlePhoneChange}
+              placeholder="1XXXXXXXXX"
+              required
+              className="w-full px-4 py-3 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-teal-500"
+            />
+          </div>
+          {errors.phone_number && (
+            <p className="mt-1 text-sm text-red-600">{errors.phone_number}</p>
           )}
 
-          {currentStep === 2 && (
-            <>
-              <input 
-                type="text" 
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all" 
-                placeholder="Telegram Number" 
+          {/* Password */}
+          <div>
+            <div className="relative">
+              <input
+                type={passwordVisible ? "text" : "password"}
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Password (min 6 chars with 1 special)"
+                required
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg pr-12 focus:ring-2 focus:ring-teal-500"
               />
-              <input 
-                type="date" 
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all" 
-              />
-            </>
-          )}
-
-          {currentStep === 3 && (
-            <>
-              <select 
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
-              >
-                <option value="" disabled selected>Select Gender</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="other">Other</option>
-              </select>
-              <input 
-                type="text" 
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all" 
-                placeholder="NID Number" 
-              />
-            </>
-          )}
-
-          {currentStep === 4 && (
-            <>
-              <div className="relative w-full">
-                <input
-                  type={passwordVisible ? "text" : "password"}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all pr-12"
-                  placeholder="Password"
-                />
-                <button 
-                  type="button" 
-                  onClick={togglePasswordVisibility} 
-                  className="absolute inset-y-0 right-0 px-4 flex items-center text-gray-500 hover:text-gray-700"
-                >
-                  {passwordVisible ? <FaEyeSlash /> : <FaEye />}
-                </button>
-              </div>
-              <div className="relative w-full">
-                <input
-                  type={passwordVisible ? "text" : "password"}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all pr-12"
-                  placeholder="Confirm Password"
-                />
-                <button 
-                  type="button" 
-                  onClick={togglePasswordVisibility} 
-                  className="absolute inset-y-0 right-0 px-4 flex items-center text-gray-500 hover:text-gray-700"
-                >
-                  {passwordVisible ? <FaEyeSlash /> : <FaEye />}
-                </button>
-              </div>
-            </>
-          )}
-
-          {/* Navigation Buttons */}
-          <div className="flex justify-between w-full mt-6">
-          {currentStep < 4 &&<button
-              type="button"
-              onClick={handlePreviousStep}
-              disabled={currentStep === 1}
-              className="flex items-center justify-center px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <FaChevronLeft className="mr-2" /> Previous
-            </button>}
-            {currentStep < 4 ? (
               <button
                 type="button"
-                onClick={handleNextStep}
-                className="flex items-center justify-center px-6 py-3 bg-gradient-to-r from-teal-400 to-blue-500 text-white rounded-lg hover:from-teal-500 hover:to-blue-600 transition-all"
+                onClick={togglePasswordVisibility}
+                className="absolute top-1/2 right-4 transform -translate-y-1/2 text-gray-500"
               >
-                Next <FaChevronRight className="ml-2" />
+                {passwordVisible ? <FaEyeSlash /> : <FaEye />}
               </button>
-            ) : (
-              <button
-                type="submit"
-                className="w-full px-6 py-3 bg-gradient-to-r from-teal-400 to-blue-500 text-white rounded-lg hover:from-teal-500 hover:to-blue-600 transition-all"
-              >
-                Register Now
-              </button>
+            </div>
+            {errors.password && (
+              <p className="mt-1 text-sm text-red-600">{errors.password}</p>
             )}
           </div>
+
+          {/* Confirm Password */}
+          <div>
+            <div className="relative">
+              <input
+                type={passwordVisible ? "text" : "password"}
+                name="confirm_password"
+                value={formData.confirm_password}
+                onChange={handleChange}
+                placeholder="Confirm Password"
+                required
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg pr-12 focus:ring-2 focus:ring-teal-500"
+              />
+              <button
+                type="button"
+                onClick={togglePasswordVisibility}
+                className="absolute top-1/2 right-4 transform -translate-y-1/2 text-gray-500"
+              >
+                {passwordVisible ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
+            {errors.confirm_password && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.confirm_password}
+              </p>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-gradient-to-r from-teal-400 to-blue-500 text-white py-3 rounded-lg font-semibold hover:from-teal-500 hover:to-blue-600"
+          >
+            {loading ? "Registering..." : "Register"}
+          </button>
         </form>
 
-        {/* Toggle to Login Page */}
-        <div className="text-center mt-8">
-          <h3 className="text-lg font-semibold text-gray-800">Already have an account?</h3>
-          <div
-            className="cursor-pointer text-teal-700 hover:text-teal-900 font-bold mt-2 transition-all"
-            onClick={switchToLogin}
+        <div className="text-center mt-6 text-sm">
+          Already have an account?{" "}
+          <span
+            className="text-teal-600 font-semibold cursor-pointer hover:underline"
+            onClick={() => {
+              navigate("/login");
+            }}
           >
             Sign In
-          </div>
+          </span>
         </div>
       </div>
     </div>
