@@ -36,9 +36,7 @@ const LeftSidePanel = ({ isCollapsed }) => {
       {/* Navigation Links */}
       <nav className="mt-4 space-y-2 text-gray-700">
         {[
-          { name: "Balance", icon: Wallet, path: "balance", color: "text-primary" },
-          { name: "Recharge", icon: Zap, path: "recharge", color: "text-secondary" },
-          { name: "Balance Transfer", icon: Repeat, path: "balance-transfer", color: "text-success" },
+          { name: "Wallet", icon: Wallet, path: "recharge", color: "text-primary" },
           { name: "Permanent Ticket", icon: Ticket, path: "permanent-ticket", color: "text-danger" },
           { name: "History", icon: Ticket, path: "history", color: "text-teal-500" },
           { name: "Settings", icon: Settings, path: "settings", color: "text-warning" },
