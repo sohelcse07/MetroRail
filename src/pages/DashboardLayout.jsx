@@ -56,7 +56,7 @@ const DashboardLayout = () => {
         />
 
         {/* Main Content Area */}
-        <div className="flex-1 p-6 overflow-y-auto">
+        <div className="flex-1  overflow-y-auto">
           <Outlet /> {/* This will render the nested routes */}
         </div>
       </div>
