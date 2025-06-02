@@ -69,7 +69,7 @@ const MetroForm = () => {
   };
 
   return (
-    <div className="w-96 mx-auto bg-white shadow-slate-500 shadow-lg rounded-lg p-6">
+    <div className="w-full lg:w-96 mx-auto bg-white shadow-slate-500 shadow-lg rounded-lg p-6">
       {/* Title */}
       <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">Metro Ticket Booking</h2>
 

@@ -2,6 +2,8 @@ import React from 'react';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 
 // Context Providers
+import { AuthProvider } from './context/AuthContext';
+import { UserProvider } from './context/UserContext';
 
 // Components
 import Navbar from './components/Navbar/Navbar';
@@ -19,9 +21,7 @@ import TravelHistory from './pages/components/TravelHistory';
 import DashHomePage from './pages/components/DashHomePage';
 import MetroFooter from './components/MetroFooter';
 import SignupPage from './components/SignupPage';
-import { AuthProvider } from './context/AuthContext';
-import { UserProvider } from './context/UserContext';
-
+import Bot from './components/Bot';
 function App() {
   return (
     <AuthProvider>
@@ -45,6 +45,11 @@ function App() {
             </Route>
           </Routes>
           <MetroFooter />
+          
+          {/* Add the Bot component here */}
+          <div className="fixed bottom-4 right-4 z-50">
+            <Bot />
+          </div>
         </Router>
       </UserProvider>
     </AuthProvider>

@@ -28,7 +28,7 @@ const Navbar = () => {
   if (location.pathname === "/userdashboard" || location.pathname.startsWith("/dashboard")) return null;
 
   return (
-    <nav className="fixed top-0 left-0 w-full bg-white shadow-sm z-50">
+    <nav className="fixed top-0 left-0 w-full bg-white shadow-sm z-50 md:mx-16">
       <div className="flex items-center justify-between px-6 h-16 md:h-20 md:px-12">
         {/* Logo */}
         <Link to="/" className="z-50">
@@ -61,7 +61,7 @@ const Navbar = () => {
         </button>
 
         {/* Desktop Navigation */}
-        <ul ref={navRef} className="hidden md:flex relative space-x-6">
+        <ul ref={navRef} className="hidden md:flex relative space-x-6  right-4">
           {/* Hover Indicator */}
           <motion.div
             className="absolute bottom-0 h-0.5 bg-teal-500 rounded-sm"
