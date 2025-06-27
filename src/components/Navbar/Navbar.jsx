@@ -4,19 +4,25 @@ import metroIcon from "../../assets/metroIcon.png";
 import { motion, AnimatePresence } from "framer-motion";
 import * as NavigationMenu from "@radix-ui/react-navigation-menu";
 import { HamburgerMenuIcon, Cross1Icon } from "@radix-ui/react-icons";
+import { useAuth } from "../../context/AuthContext";
 
 const Navbar = () => {
+  const token = useAuth();
   const navItems = [
     { name: "Home", path: "/" },
     { name: "Profile", path: "/dashboard" },
-    { name: "Sign In", path: "/login" },
+    ...(!token ? [{ name: "Sign In", path: "/login" }] : []),
   ];
 
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navRef = useRef(null);
 
-  if (location.pathname === "/userdashboard" || location.pathname.startsWith("/dashboard")) return null;
+  if (
+    location.pathname === "/userdashboard" ||
+    location.pathname.startsWith("/dashboard")
+  )
+    return null;
 
   return (
     <NavigationMenu.Root className="fixed top-0 left-0 w-full bg-white shadow-sm z-50">
@@ -24,7 +30,11 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <Link to="/" className="z-50 flex-shrink-0">
-            <img src={metroIcon} alt="Metro Icon" className="w-20 h-16 md:w-24 md:h-20" />
+            <img
+              src={metroIcon}
+              alt="Metro Icon"
+              className="w-20 h-16 md:w-24 md:h-20"
+            />
           </Link>
 
           {/* Desktop Navigation */}
@@ -36,7 +46,9 @@ const Navbar = () => {
               <NavigationMenu.Item key={index} className="relative">
                 <NavigationMenu.Trigger
                   className={`px-4 py-2 text-gray-800 hover:text-teal-500 transition duration-200 ${
-                    location.pathname === item.path ? "text-teal-500 font-medium" : ""
+                    location.pathname === item.path
+                      ? "text-teal-500 font-medium"
+                      : ""
                   }`}
                 >
                   <Link to={item.path}>{item.name}</Link>
@@ -75,7 +87,7 @@ const Navbar = () => {
               className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
               onClick={() => setIsMobileMenuOpen(false)}
             />
-            
+
             {/* Menu Panel */}
             <motion.div
               initial={{ y: "-100%", opacity: 0 }}
@@ -110,7 +122,7 @@ const Navbar = () => {
                   </motion.li>
                 ))}
               </NavigationMenu.List>
-              
+
               {/* Close button for mobile */}
               <motion.button
                 whileTap={{ scale: 0.95 }}
