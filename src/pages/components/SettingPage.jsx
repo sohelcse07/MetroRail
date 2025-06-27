@@ -14,7 +14,8 @@ const SettingsPage = () => {
     date_of_birth: "",
     nid_no: "",
     blood_group: "",
-    address: ""
+    address: "",
+    gender:""
   });
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingProgress, setProcessingProgress] = useState(0);
@@ -71,6 +72,7 @@ const SettingsPage = () => {
         1. Name (English)
         2. Date of Birth (convert to YYYY-MM-DD)
         3. NID Number (digits only)
+        4.gender (based on the image )
         
         Return JSON:
         {
@@ -143,7 +145,8 @@ const SettingsPage = () => {
         date_of_birth: frontData.dateOfBirth || prev.date_of_birth,
         nid_no: frontData.nidNumber?.replace(/\D/g, "") || prev.nid_no,
         blood_group: backData.bloodGroup || prev.blood_group,
-        address: backData.address || prev.address
+        address: backData.address || prev.address,
+        gender:frontData.gender|| prev.gender,
       }));
 
       if (!frontData.nidNumber || !frontData.name) {
@@ -183,6 +186,7 @@ const SettingsPage = () => {
     console.log("User deleted");
     setShowDeleteModal(false);
   };
+  
 
   return (
     <div className="p-4 max-w-6xl mx-auto">
@@ -389,6 +393,15 @@ const SettingsPage = () => {
                         rows="2"
                       />
                     </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Gender</label>
+                      <textarea
+                        value={extractedData.gender}
+                        onChange={(e) => handleFieldChange("gender", e.target.value)}
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                        rows="2"
+                      />
+                    </div>
                   </div>
 
                   <div className="pt-2 flex justify-end gap-2">
@@ -398,7 +411,8 @@ const SettingsPage = () => {
                         date_of_birth: "",
                         nid_no: "",
                         blood_group: "",
-                        address: ""
+                        address: "",
+                        gender:""
                       })}
                       className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                     >

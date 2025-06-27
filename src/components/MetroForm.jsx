@@ -1,5 +1,8 @@
 import React, { useState } from "react";
 import UseAxiosSecure from "../hooks/useAxiosSecure";
+import * as Dialog from "@radix-ui/react-dialog";
+import * as Select from "@radix-ui/react-select";
+import { ChevronDown, ChevronUp, Check } from "lucide-react";
 
 const MetroForm = () => {
   const axiosSecure = UseAxiosSecure();
@@ -14,9 +17,9 @@ const MetroForm = () => {
     "Kazi Para",
     "ShewraPara",
     "Agargaon",
-    "UBijoy Sharani",
+    "Bijoy Sharani",
     "Farmgate",
-    "MKawran Bazar",
+    "Kawran Bazar",
     "Shahbagh",
     "Dhaka University",
     "Bangladesh Secretariat",
@@ -27,30 +30,28 @@ const MetroForm = () => {
   const [to, setTo] = useState("");
   const [teleNumber, setTeleNumber] = useState("");
   const [ticketCount, setTicketCount] = useState(1);
-  const [dropdownOpen, setDropdownOpen] = useState({ from: false, to: false });
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogContent, setDialogContent] = useState({
+    title: "",
+    message: "",
+    isError: false,
+  });
 
-  const handleFromSelect = (place) => {
-    setFrom(place);
-    if (place === to) setTo("");
-    setDropdownOpen({ ...dropdownOpen, from: false });
-  };
-
-  const handleToSelect = (place) => {
-    setTo(place);
-    if (place === from) setFrom("");
-    setDropdownOpen({ ...dropdownOpen, to: false });
+  const showDialog = (title, message, isError = false) => {
+    setDialogContent({ title, message, isError });
+    setDialogOpen(true);
   };
 
   const handleTicketForm = (e) => {
     e.preventDefault();
     if (!from || !to || !teleNumber || !ticketCount) {
-      alert("You must submit all the fields");
+      showDialog("Error", "You must fill all the fields", true);
       return;
     }
 
     const ticketInfo = {
-      from: from,
-      to: to,
+      from,
+      to,
       ticket_number: ticketCount,
       telegram_number: teleNumber,
     };
@@ -58,138 +59,197 @@ const MetroForm = () => {
     axiosSecure
       .post("/single-journey/payment/initiate", ticketInfo)
       .then((res) => {
-        console.log(res.data);
         if (res.data.payment_url) {
           window.open(res.data.payment_url, "_blank");
         }
       })
       .catch((err) => {
         console.error("API Error:", err);
+        showDialog(
+          "Payment Error",
+          "Failed to initiate payment. Please try again.",
+          true
+        );
       });
   };
 
   return (
-    <div className="w-full lg:w-96 mx-auto bg-white shadow-slate-500 shadow-lg rounded-lg p-6">
-      {/* Title */}
-      <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">Metro Ticket Booking</h2>
+    <div className="w-full lg:w-96 mx-auto bg-white shadow-lg rounded-lg p-6 border border-gray-200">
+      <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+        Metro Ticket Booking
+      </h2>
 
-      {/* From Field */}
-      <div className="mb-4">
-        <label className="block text-gray-700 font-medium">From</label>
-        <div className="relative">
-          <div
-            className="w-full px-4 py-2 border rounded bg-gray-50 text-gray-800 cursor-pointer"
-            onClick={() => setDropdownOpen({ ...dropdownOpen, from: !dropdownOpen.from })}
-          >
-            {from || "Select starting point"}
-          </div>
-          {dropdownOpen.from && (
-            <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 max-h-40 overflow-auto shadow-lg">
-              {places
-                .filter((place) => place !== to)
-                .map((place, idx) => (
-                  <li
-                    key={idx}
-                    className="px-4 py-2 hover:bg-teal-100 cursor-pointer"
-                    onClick={() => handleFromSelect(place)}
-                  >
-                    {place}
-                  </li>
-                ))}
-            </ul>
-          )}
+      <form onSubmit={handleTicketForm} className="space-y-4">
+        {/* From Field */}
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">From</label>
+          <Select.Root value={from} onValueChange={setFrom}>
+            <Select.Trigger className="inline-flex items-center justify-between w-full px-4 py-2 text-sm bg-gray-50 rounded-md border border-gray-300 text-gray-800 hover:bg-gray-100">
+              <Select.Value placeholder="Select starting point" />
+              <Select.Icon className="text-gray-500">
+                <ChevronDown className="h-4 w-4" />
+              </Select.Icon>
+            </Select.Trigger>
+            <Select.Content className="overflow-hidden bg-white rounded-md shadow-lg border border-gray-200 z-50">
+              <Select.ScrollUpButton className="flex items-center justify-center h-6 bg-white text-gray-500 cursor-default">
+                <ChevronUp className="h-4 w-4" />
+              </Select.ScrollUpButton>
+              <Select.Viewport className="p-1 max-h-[200px]">
+                {places
+                  .filter((place) => place !== to)
+                  .map((place, idx) => (
+                    <Select.Item
+                      key={idx}
+                      value={place}
+                      className="relative flex items-center px-7 py-2 text-sm text-gray-700 rounded-md hover:bg-teal-50 hover:text-teal-900 focus:bg-teal-50 focus:text-teal-900 outline-none cursor-pointer"
+                    >
+                      <Select.ItemText>{place}</Select.ItemText>
+                      <Select.ItemIndicator className="absolute left-2 inline-flex items-center">
+                        <Check className="h-4 w-4 text-teal-600" />
+                      </Select.ItemIndicator>
+                    </Select.Item>
+                  ))}
+              </Select.Viewport>
+              <Select.ScrollDownButton className="flex items-center justify-center h-6 bg-white text-gray-500 cursor-default">
+                <ChevronDown className="h-4 w-4" />
+              </Select.ScrollDownButton>
+            </Select.Content>
+          </Select.Root>
         </div>
-      </div>
 
-      {/* To Field */}
-      <div className="mb-4">
-        <label className="block text-gray-700 font-medium">To</label>
-        <div className="relative">
-          <div
-            className="w-full px-4 py-2 border rounded bg-gray-50 text-gray-800 cursor-pointer"
-            onClick={() => setDropdownOpen({ ...dropdownOpen, to: !dropdownOpen.to })}
-          >
-            {to || "Select destination"}
-          </div>
-          {dropdownOpen.to && (
-            <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 max-h-40 overflow-auto shadow-lg">
-              {places
-                .filter((place) => place !== from)
-                .map((place, idx) => (
-                  <li
-                    key={idx}
-                    className="px-4 py-2 hover:bg-teal-100 cursor-pointer"
-                    onClick={() => handleToSelect(place)}
-                  >
-                    {place}
-                  </li>
-                ))}
-            </ul>
-          )}
+        {/* To Field */}
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">To</label>
+          <Select.Root value={to} onValueChange={setTo}>
+            <Select.Trigger className="inline-flex items-center justify-between w-full px-4 py-2 text-sm bg-gray-50 rounded-md border border-gray-300 text-gray-800 hover:bg-gray-100">
+              <Select.Value placeholder="Select destination" />
+              <Select.Icon className="text-gray-500">
+                <ChevronDown className="h-4 w-4" />
+              </Select.Icon>
+            </Select.Trigger>
+            <Select.Content className="overflow-hidden bg-white rounded-md shadow-lg border border-gray-200 z-50">
+              <Select.ScrollUpButton className="flex items-center justify-center h-6 bg-white text-gray-500 cursor-default">
+                <ChevronUp className="h-4 w-4" />
+              </Select.ScrollUpButton>
+              <Select.Viewport className="p-1 max-h-[200px]">
+                {places
+                  .filter((place) => place !== from)
+                  .map((place, idx) => (
+                    <Select.Item
+                      key={idx}
+                      value={place}
+                      className="relative flex items-center px-7 py-2 text-sm text-gray-700 rounded-md hover:bg-teal-50 hover:text-teal-900 focus:bg-teal-50 focus:text-teal-900 outline-none cursor-pointer"
+                    >
+                      <Select.ItemText>{place}</Select.ItemText>
+                      <Select.ItemIndicator className="absolute left-2 inline-flex items-center">
+                        <Check className="h-4 w-4 text-teal-600" />
+                      </Select.ItemIndicator>
+                    </Select.Item>
+                  ))}
+              </Select.Viewport>
+              <Select.ScrollDownButton className="flex items-center justify-center h-6 bg-white text-gray-500 cursor-default">
+                <ChevronDown className="h-4 w-4" />
+              </Select.ScrollDownButton>
+            </Select.Content>
+          </Select.Root>
         </div>
-      </div>
 
-      {/* Ticket Type */}
-      <div className="flex mb-4">
-        <button className="w-1/2 p-2 border rounded-l-lg bg-teal-400 pointer-events-none text-white font-medium hover:bg-teal-500">
-          One-way
-        </button>
-        <button className="w-1/2 p-2 border pointer-events-none rounded-r-lg bg-gray-200 text-gray-700 font-medium hover:bg-gray-300">
-          No Return
-        </button>
-      </div>
-
-      {/* Telegram Number Field */}
-      <div className="mb-4">
-        <label className="block text-gray-700 font-medium">Telegram Number</label>
-        <input
-          type="text"
-          value={teleNumber}
-          onChange={(e) => setTeleNumber(e.target.value)}
-          className="w-full px-4 py-2 border rounded bg-gray-50 text-gray-800 placeholder-gray-400"
-          placeholder="Enter Telegram number"
-          required
-        />
-      </div>
-
-      {/* Ticket Count */}
-      <div className="mb-4">
-        <label className="block text-gray-700 font-medium">Number of Tickets</label>
-        <div className="flex items-center">
+        {/* Ticket Type */}
+        <div className="flex rounded-md overflow-hidden border border-gray-300">
           <button
             type="button"
-            className="px-3 py-2 bg-teal-400 text-white font-bold rounded-l-md border border-teal-500 hover:bg-teal-500"
-            onClick={() => setTicketCount(ticketCount > 1 ? ticketCount - 1 : 1)}
+            className="flex-1 py-2 bg-teal-500 text-white font-medium text-sm focus:outline-none"
+            disabled
           >
-            -
+            One-way
           </button>
+          <button
+            type="button"
+            className="flex-1 py-2 bg-gray-200 text-gray-700 font-medium text-sm focus:outline-none"
+            disabled
+          >
+            No Return
+          </button>
+        </div>
+
+        {/* Telegram Number Field */}
+        <div className="space-y-2">
+          <label htmlFor="telegram" className="block text-sm font-medium text-gray-700">
+            Telegram Number
+          </label>
           <input
-            type="number"
-            value={ticketCount}
-            min="1"
-            className="w-16 text-center px-4 py-2 bg-gray-100 text-gray-900 border-t border-b border-teal-400 focus:outline-none"
-            readOnly
+            id="telegram"
+            type="text"
+            value={teleNumber}
+            onChange={(e) => setTeleNumber(e.target.value)}
+            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500"
+            placeholder="Enter Telegram number"
+            required
           />
-          <button
-            type="button"
-            className="px-3 py-2 bg-teal-400 text-white font-bold rounded-r-md border border-teal-500 hover:bg-teal-500"
-            onClick={() => setTicketCount(ticketCount < 5 ? ticketCount + 1 : ticketCount)}
-          >
-            +
-          </button>
         </div>
-      </div>
 
-      {/* Submit Button */}
-      <div className="mt-4">
+        {/* Ticket Count */}
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
+            Number of Tickets
+          </label>
+          <div className="flex rounded-md overflow-hidden border border-gray-300 w-fit">
+            <button
+              type="button"
+              className="px-3 py-1 bg-teal-500 text-white font-bold hover:bg-teal-600 focus:outline-none"
+              onClick={() => setTicketCount(Math.max(1, ticketCount - 1))}
+            >
+              -
+            </button>
+            <div className="px-4 py-1 bg-gray-50 text-center w-16 border-x border-gray-300">
+              {ticketCount}
+            </div>
+            <button
+              type="button"
+              className="px-3 py-1 bg-teal-500 text-white font-bold hover:bg-teal-600 focus:outline-none"
+              onClick={() => setTicketCount(Math.min(5, ticketCount + 1))}
+            >
+              +
+            </button>
+          </div>
+        </div>
+
+        {/* Submit Button */}
         <button
           type="submit"
-          onClick={handleTicketForm}
-          className="w-full py-3 bg-teal-500 text-white font-bold rounded-lg shadow-md hover:bg-teal-600 transition-all duration-300"
+          className="w-full py-2.5 px-4 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors"
         >
           Proceed to Payment
         </button>
-      </div>
+      </form>
+
+      {/* Radix Dialog for messages */}
+      <Dialog.Root open={dialogOpen} onOpenChange={setDialogOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
+          <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md p-6 bg-white rounded-lg shadow-lg focus:outline-none">
+            <Dialog.Title className={`text-lg font-semibold ${dialogContent.isError ? "text-red-600" : "text-teal-600"}`}>
+              {dialogContent.title}
+            </Dialog.Title>
+            <Dialog.Description className="mt-2 text-gray-600">
+              {dialogContent.message}
+            </Dialog.Description>
+            <div className="mt-4 flex justify-end">
+              <Dialog.Close asChild>
+                <button
+                  className={`px-4 py-2 rounded-md text-sm font-medium ${
+                    dialogContent.isError
+                      ? "bg-red-100 text-red-700 hover:bg-red-200"
+                      : "bg-teal-100 text-teal-700 hover:bg-teal-200"
+                  }`}
+                >
+                  Close
+                </button>
+              </Dialog.Close>
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
     </div>
   );
 };

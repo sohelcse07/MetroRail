@@ -2,16 +2,20 @@ import { useState } from "react";
 import LeftSidePanel from "../components/LeftSidePanel";
 import { Outlet } from "react-router-dom";
 import Topbar from "../components/TopBar";
-import ProfileSidebar from "../components/ProfileSideBar";
 
-// Dashboard Layout Component
 const DashboardLayout = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // for mobile
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isProfileSidebarOpen, setIsProfileSidebarOpen] = useState(false);
 
   const toggleSidebar = () => {
-    setIsSidebarCollapsed(!isSidebarCollapsed);
+    // For desktop collapse and mobile drawer
+    if (window.innerWidth < 768) {
+      setIsSidebarOpen(!isSidebarOpen);
+    } else {
+      setIsSidebarCollapsed(!isSidebarCollapsed);
+    }
   };
 
   const toggleFullscreen = () => {
@@ -27,25 +31,28 @@ const DashboardLayout = () => {
     setIsProfileSidebarOpen(!isProfileSidebarOpen);
   };
 
-  const profileInfo = {
-    name: "Sohel Matubber",
-    email: "sohel@gmail.com",
-    nid: "9876543210987",
-    telegram: "@sohel",
-  };
-
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-100 overflow-hidden">
+      {/* Mobile sidebar overlay */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black bg-opacity-40 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <div
-        className={`transition-all duration-300 ${
-          isSidebarCollapsed ? "w-16" : "w-64"
-        } bg-white shadow-lg`}
+        className={`fixed md:static z-50 top-0 left-0 h-full transition-all duration-300 
+          ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} 
+          md:translate-x-0 
+          ${isSidebarCollapsed ? "w-16" : "w-64"} 
+          bg-white border-r shadow-lg md:shadow-none`}
       >
-        <LeftSidePanel isCollapsed={isSidebarCollapsed} />
+        <LeftSidePanel isCollapsed={isSidebarCollapsed && window.innerWidth >= 768} closeSidebar={() => setIsSidebarOpen(false)} />
       </div>
 
-      {/* Main Content */}
+      {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Topbar */}
         <Topbar
@@ -55,19 +62,11 @@ const DashboardLayout = () => {
           isFullscreen={isFullscreen}
         />
 
-        {/* Main Content Area */}
-        <div className="flex-1  overflow-y-auto">
-          <Outlet /> {/* This will render the nested routes */}
+        {/* Content Area */}
+        <div className="flex-1 overflow-y-auto">
+          <Outlet />
         </div>
       </div>
-
-      {/* Profile Sidebar */}
-      {isProfileSidebarOpen && (
-        <ProfileSidebar
-          onClose={() => setIsProfileSidebarOpen(false)}
-          profileInfo={profileInfo}
-        />
-      )}
     </div>
   );
 };

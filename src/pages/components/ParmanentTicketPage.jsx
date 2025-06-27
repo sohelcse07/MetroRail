@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
+import PermanentTicketSkeleton from "../../components/skeleton/PermanentTicketSkeleton";
 
 const PermanentTicketPage = () => {
   const { user, token } = useAuth();
@@ -143,14 +144,10 @@ const PermanentTicketPage = () => {
     });
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
-      </div>
-    );
-  }
-
+  
+if (loading) {
+  return <PermanentTicketSkeleton />;
+}
   if (error && (!error.detail || error.detail !== "Permanent ticket not found.")) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-3xl">

@@ -1,192 +1,218 @@
-import React,{useState} from "react";
-import ProfileImage from "../assets/ProfilePicture.jpeg"
-import { TbCoinTaka } from "react-icons/tb"; // Example for financial icon
-import { MdEmail, MdDateRange, MdPhone } from "react-icons/md"; // Example for email, date, and phone icons
-import { FaUser, FaIdCard } from "react-icons/fa"; // Example for user and ID icons
-import { MdOutlineQrCode } from "react-icons/md";
-import LeftSidePanel from "../components/LeftSidePanel";
+import React, { useState } from "react";
+import * as Radix from "@radix-ui/react-primitives";
+import {
+  Card,
+  Flex,
+  Grid,
+  Box,
+  Text,
+  Heading,
+  Avatar,
+  Button,
+  Table,
+  Badge,
+  IconButton,
+  ScrollArea
+} from "@radix-ui/themes";
+import {
+  CoinIcon,
+  EnvelopeClosedIcon,
+  MobileIcon,
+  CalendarIcon,
+  PersonIcon,
+  IdCardIcon,
+  QRCodeIcon,
+  GearIcon,
+  QuestionMarkCircledIcon,
+  ArrowRightIcon,
+  DownloadIcon
+} from "@radix-ui/react-icons";
 
 const UserDashboard = () => {
-  const [showSecondContainer, setShowSecondContainer] = useState(false);
+  const [showFeatures, setShowFeatures] = useState(false);
 
-    const profileData = [
-        { title: "Balance", value: "1.33 BDT", icon: <TbCoinTaka /> },
-        { title: "E-mail", value: "john@gmail.com", icon: <MdEmail /> },
-        { title: "Telegram Number", value: "01888885555", icon: <MdPhone /> },
-        { title: "Date Of Birth", value: "02-01-2024", icon: <MdDateRange /> },
-        { title: "Gender", value: "Male", icon: <FaUser /> },
-        { title: "Permanent Ticket", value: "View", icon: <MdOutlineQrCode /> },
-    ];
-    const features = [
-        { label: "Recharge", icon: "💳", color: "text-red-500" },
-        { label: "Balance Transfer", icon: "📲", color: "text-cyan-500" },
+  const profileData = [
+    { title: "Balance", value: "1.33 BDT", icon: <CoinIcon width={24} height={24} /> },
+    { title: "E-mail", value: "john@gmail.com", icon: <EnvelopeClosedIcon width={24} height={24} /> },
+    { title: "Telegram Number", value: "01888885555", icon: <MobileIcon width={24} height={24} /> },
+    { title: "Date Of Birth", value: "02-01-2024", icon: <CalendarIcon width={24} height={24} /> },
+    { title: "Gender", value: "Male", icon: <PersonIcon width={24} height={24} /> },
+    { title: "Permanent Ticket", value: "View", icon: <QRCodeIcon width={24} height={24} /> },
+  ];
 
+  const features = [
+    { label: "Recharge", icon: <CoinIcon width={32} height={32} />, color: "red" },
+    { label: "Balance Transfer", icon: <ArrowRightIcon width={32} height={32} />, color: "cyan" },
+    { label: "Settings", icon: <GearIcon width={32} height={32} />, color: "pink" },
+    { label: "Help", icon: <QuestionMarkCircledIcon width={32} height={32} />, color: "blue" },
+  ];
 
-        { label: "Settings", icon: "⚙️", color: "text-pink-500" },
+  const travelHistory = [
+    {
+      source: "Mirpur 11",
+      destination: "Mirpur 10",
+      seats: "5",
+      price: "90.00",
+      date: "Jan 5, 2022",
+      time: "8:35 a.m.",
+      status: "Cancelled",
+      ticketStatus: "Refunded",
+      qr: "-",
+      ticket: "Download Ticket",
+    },
+    {
+      source: "Mirpur 11",
+      destination: "Mirpur 10",
+      seats: "10",
+      price: "225.00",
+      date: "Jan 10, 2022",
+      time: "8:35 a.m.",
+      status: "Confirmed",
+      ticketStatus: "Paid",
+      qr: "/path/to/qr-code.jpg",
+      ticket: "Download Ticket",
+    },
+  ];
 
-        { label: "Help", icon: "❓", color: "text-cyan-500" },
-    ];
-    return (
-         <div className="min-h-screen  relative text-white">
-            <LeftSidePanel/>
-    
-            <div className="container mx-auto px-4 py-6 lg:py-12">
-                
-                {/* Personal Details Section */}
-                <div className="bg-slate-500/10 backdrop-blur-lg rounded-lg p-6 lg:p-8 mb-12">
-                    <div className="flex flex-col items-center text-center space-y-6">
-                        <img
-                            src={ProfileImage} // Replace with actual profile image path
-                            alt="Profile"
-                            className="w-32 h-32 lg:w-44 lg:h-44 rounded-full border-4 border-teal-800 object-cover"
-                        />
-                        <h1 className="text-4xl font-semibold text-white ">John</h1>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-                            {profileData.map((item, idx) => (
-                                <div
-                                    key={idx}
-                                    className="flex items-center bg-teal-700 border-2 border-white p-4 rounded-lg shadow-lg transform hover:scale-105 transition duration-300"
-                                >
-                                    <div className="text-4xl text-orange-00">
-                                        {item.icon}
-                                    </div>
-                                    <div className="ml-4  text-start">
-                                        <h2 className="text-lg font-bold text-[#eff4ec]">{item.title}</h2>
-                                        <p className="text-sm font-medium text-violet-100">{item.value}</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                        <div
-            className="cursor-pointer text-4xl flex justify-center    text-cyan-500"
-            onClick={() => setShowSecondContainer(!showSecondContainer)}
-          >
-            <span className=" bg-slate-900 p-4 border-2  rounded-md shadow-lg hover:bg-gray-700">
-              🛠️
-            </span>
-          </div>
-                    </div>
-                </div>
-            
-                <div className={`bg-white/10 backdrop-blur-lg  flex justify-center items-center transition-opacity duration-1000  ${showSecondContainer?"h-auto":" hidden"}`}>
-                    <div className="grid grid-cols-2  gap-4 p-4">
-                        {features.map((feature, index) => (
-                            <div
-                                key={index}
-                                className="flex flex-col justify-center items-center bg-gray-800 rounded-lg p-4 shadow-md"
-                            >
-                                <div className={`text-6xl mb-2 ${feature.color}`}>{feature.icon}</div>
-                                <span className="text-white text-xl font-medium">{feature.label}</span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-                {/* Travel History Section */}
-                <div className="bg-slate-500/10 backdrop-blur-lg rounded-lg mt-8 p-6 lg:p-8">
-                    <h2 className="text-2xl font-bold mb-6">Travel History</h2>
-                    <div className="overflow-x-auto">
-                        <table className="table-auto w-full text-sm">
-                            <thead>
-                                <tr className="bg-indigo-700 text-white">
-                                    {[
-                                        "Source",
-                                        "Destination",
-                                        "Num of Seats",
-                                        "Price",
-                                        "Date",
-                                        "Time",
-                                        "Status",
-                                        "Ticket Status",
-                                        "QR Image",
-                                        "Ticket",
-                                    ].map((header, idx) => (
-                                        <th key={idx} className="px-4 py-2 text-left">
-                                            {header}
-                                        </th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {[
-                                    {
-                                        source: "Mirpur 11",
-                                        destination: "Mirpur 10",
-                                        seats: "5",
-                                        price: "90.00",
-                                        date: "Jan 5, 2022",
-                                        time: "8:35 a.m.",
-                                        status: "Cancelled",
-                                        ticketStatus: "Refunded",
-                                        qr: "-",
-                                        ticket: "Download Ticket",
-                                    },
-                                    {
-                                        source: "Mirpur 11",
-                                        destination: "Mirpur 10",
-                                        seats: "10",
-                                        price: "225.00",
-                                        date: "Jan 10, 2022",
-                                        time: "8:35 a.m.",
-                                        status: "Confirmed",
-                                        ticketStatus: "Paid",
-                                        qr: "/path/to/qr-code.jpg",
-                                        ticket: "Download Ticket",
-                                    },
-                                ].map((entry, idx) => (
-                                    <tr
-                                        key={idx}
-                                        className={`${idx % 2 === 0
-                                                ? "bg-indigo-700/50"
-                                                : "bg-purple-700/50"
-                                            } text-white`}
-                                    >
-                                        <td className="px-4 py-2">{entry.source}</td>
-                                        <td className="px-4 py-2">{entry.destination}</td>
-                                        <td className="px-4 py-2">{entry.seats}</td>
-                                        <td className="px-4 py-2">{entry.price}</td>
-                                        <td className="px-4 py-2">{entry.date}</td>
-                                        <td className="px-4 py-2">{entry.time}</td>
-                                        <td
-                                            className={`px-4 py-2 ${entry.status === "Cancelled"
-                                                    ? "text-red-400"
-                                                    : "text-green-400"
-                                                }`}
-                                        >
-                                            {entry.status}
-                                        </td>
-                                        <td
-                                            className={`px-4 py-2 ${entry.ticketStatus === "Refunded"
-                                                    ? "text-yellow-400"
-                                                    : "text-green-400"
-                                                }`}
-                                        >
-                                            {entry.ticketStatus}
-                                        </td>
-                                        <td className="px-4 py-2">
-                                            {entry.qr !== "-" ? (
-                                                <img
-                                                    src={entry.qr}
-                                                    alt="QR Code"
-                                                    className="h-8 w-8 rounded"
-                                                />
-                                            ) : (
-                                                "-"
-                                            )}
-                                        </td>
-                                        <td className="px-4 py-2 text-blue-400 underline cursor-pointer">
-                                            {entry.ticket}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+  return (
+    <Radix.Root className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-slate-100">
+      {/* Layout Container */}
+      <Flex>
+        {/* Left Side Panel would go here */}
+        
+        {/* Main Content */}
+        <Box className="w-full p-4 md:p-8">
+          {/* Profile Section */}
+          <Card className="bg-slate-800/80 backdrop-blur-md mb-8">
+            <Flex direction="column" align="center" gap="6" className="p-6">
+              <Avatar
+                size="8"
+                src="../assets/ProfilePicture.jpeg"
+                fallback="JD"
+                className="border-4 border-teal-500/80 shadow-lg"
+              />
+              
+              <Heading size="7" className="text-teal-200">
+                John Doe
+              </Heading>
+              
+              <Grid columns={{ initial: '1', sm: '2', lg: '3' }} gap="4" width="100%">
+                {profileData.map((item, idx) => (
+                  <Card key={idx} className="bg-slate-700/50 hover:bg-slate-700/70 transition-all">
+                    <Flex gap="4" align="center" p="4">
+                      <Box className={`text-teal-400 p-2 rounded-md bg-slate-800/50`}>
+                        {item.icon}
+                      </Box>
+                      <Box>
+                        <Text as="div" size="2" weight="bold" className="text-slate-300">
+                          {item.title}
+                        </Text>
+                        <Text as="div" size="2" className="text-teal-100">
+                          {item.value}
+                        </Text>
+                      </Box>
+                    </Flex>
+                  </Card>
+                ))}
+              </Grid>
+              
+              <IconButton
+                size="4"
+                variant="soft"
+                color="teal"
+                onClick={() => setShowFeatures(!showFeatures)}
+                className="transition-transform hover:scale-110"
+              >
+                <GearIcon width={24} height={24} />
+              </IconButton>
+            </Flex>
+          </Card>
 
-        </div>
-       
-    );
+          {/* Features Panel */}
+          {showFeatures && (
+            <Card className="bg-slate-800/60 backdrop-blur-md mb-8 animate-fadeIn">
+              <Grid columns={{ initial: '2', sm: '4' }} gap="4" p="6">
+                {features.map((feature, index) => (
+                  <Button
+                    key={index}
+                    variant="soft"
+                    color={feature.color}
+                    size="3"
+                    className="h-24 flex flex-col gap-2 hover:scale-105 transition-transform"
+                  >
+                    {feature.icon}
+                    <Text>{feature.label}</Text>
+                  </Button>
+                ))}
+              </Grid>
+            </Card>
+          )}
+
+          {/* Travel History Section */}
+          <Card className="bg-slate-800/80 backdrop-blur-md">
+            <Box p="6">
+              <Heading size="6" mb="6">Travel History</Heading>
+              
+              <ScrollArea type="always" scrollbars="horizontal" style={{ maxWidth: '100%' }}>
+                <Table.Root variant="surface" className="min-w-full">
+                  <Table.Header>
+                    <Table.Row className="bg-slate-700">
+                      <Table.ColumnHeaderCell>Source</Table.ColumnHeaderCell>
+                      <Table.ColumnHeaderCell>Destination</Table.ColumnHeaderCell>
+                      <Table.ColumnHeaderCell>Seats</Table.ColumnHeaderCell>
+                      <Table.ColumnHeaderCell>Price</Table.ColumnHeaderCell>
+                      <Table.ColumnHeaderCell>Date</Table.ColumnHeaderCell>
+                      <Table.ColumnHeaderCell>Time</Table.ColumnHeaderCell>
+                      <Table.ColumnHeaderCell>Status</Table.ColumnHeaderCell>
+                      <Table.ColumnHeaderCell>Ticket Status</Table.ColumnHeaderCell>
+                      <Table.ColumnHeaderCell>QR</Table.ColumnHeaderCell>
+                      <Table.ColumnHeaderCell>Ticket</Table.ColumnHeaderCell>
+                    </Table.Row>
+                  </Table.Header>
+
+                  <Table.Body>
+                    {travelHistory.map((entry, idx) => (
+                      <Table.Row key={idx} className={idx % 2 === 0 ? 'bg-slate-800/50' : 'bg-slate-700/50'}>
+                        <Table.Cell>{entry.source}</Table.Cell>
+                        <Table.Cell>{entry.destination}</Table.Cell>
+                        <Table.Cell>{entry.seats}</Table.Cell>
+                        <Table.Cell>{entry.price} BDT</Table.Cell>
+                        <Table.Cell>{entry.date}</Table.Cell>
+                        <Table.Cell>{entry.time}</Table.Cell>
+                        <Table.Cell>
+                          <Badge color={entry.status === "Cancelled" ? "red" : "green"}>
+                            {entry.status}
+                          </Badge>
+                        </Table.Cell>
+                        <Table.Cell>
+                          <Badge color={entry.ticketStatus === "Refunded" ? "amber" : "green"}>
+                            {entry.ticketStatus}
+                          </Badge>
+                        </Table.Cell>
+                        <Table.Cell>
+                          {entry.qr !== "-" ? (
+                            <QRCodeIcon width={24} height={24} />
+                          ) : (
+                            "-"
+                          )}
+                        </Table.Cell>
+                        <Table.Cell>
+                          <Button variant="ghost" size="1">
+                            <DownloadIcon width={16} height={16} />
+                            Download
+                          </Button>
+                        </Table.Cell>
+                      </Table.Row>
+                    ))}
+                  </Table.Body>
+                </Table.Root>
+              </ScrollArea>
+            </Box>
+          </Card>
+        </Box>
+      </Flex>
+    </Radix.Root>
+  );
 };
 
 export default UserDashboard;

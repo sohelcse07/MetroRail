@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiSend, FiX, FiMessageSquare, FiMessageCircle } from 'react-icons/fi';
+import BotImage from "../assets/bot.png"
 
 const Bot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -36,7 +37,7 @@ const Bot = () => {
   };
 
   return (
-    <div className="fixed bottom-8 right-8 z-50">
+    <div className="fixed bottom-8 md:right-8 z-50">
       {/* Bot Icon Button */}
       <motion.button
         whileHover={{ scale: 1.1 }}
@@ -49,7 +50,11 @@ const Bot = () => {
         style={{ display: isOpen ? 'none' : 'flex' }}
         aria-label="Open chat bot"
       >
-        <FiMessageCircle className="text-white text-2xl" />
+          <img 
+            src={BotImage} 
+            alt="Chatbot" 
+            className="w-full h-full object-cover"
+          />
       </motion.button>
 
       {/* Chat Window */}

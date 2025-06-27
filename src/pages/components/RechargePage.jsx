@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
+import WalletSkeleton from "../../components/skeleton/WalletSkeleton";
 
 const WalletComponent = () => {
   const { token } = useAuth();
@@ -88,9 +89,7 @@ const WalletComponent = () => {
 
   if (loading.balance || loading.history) {
     return (
-      <div className="flex justify-center items-center min-h-[200px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
-      </div>
+     <WalletSkeleton/>
     );
   }
 
