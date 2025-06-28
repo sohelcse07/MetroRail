@@ -3,6 +3,7 @@ import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiSend, FiX, FiMessageSquare } from 'react-icons/fi';
 import BotImage from "../assets/bot.png";
+import { useLocation } from 'react-router-dom';
 
 const Bot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -11,7 +12,10 @@ const Bot = () => {
   const [isLoading, setIsLoading] = useState(false);
   const inputRef = useRef(null);
   const messagesEndRef = useRef(null);
+  const location=useLocation();
 
+
+  
   // Auto-scroll to bottom when conversation updates
   useEffect(() => {
     scrollToBottom();
@@ -45,6 +49,12 @@ const Bot = () => {
       setIsLoading(false);
     }
   };
+
+  if (
+    location.pathname === "/userdashboard" ||
+    location.pathname.startsWith("/dashboard")
+  )
+    return null;
 
   return (
     <div className="fixed bottom-8 md:right-8 z-50">
