@@ -11,7 +11,6 @@ import Homepage from "./components/Home/Homepage";
 import LoginScreen from "./components/AuthScreen";
 import PaymentStatus from "./pages/PaymentStatus";
 import DashboardLayout from "./pages/DashboardLayout";
-import BalancePage from "./pages/components/BalancePage";
 import RechargePage from "./pages/components/RechargePage";
 import BalanceTransferPage from "./pages/components/BalanceTransferPage";
 import PermanentTicketPage from "./pages/components/ParmanentTicketPage";
@@ -23,6 +22,8 @@ import SignupPage from "./components/SignupPage";
 import Bot from "./components/Bot";
 import PrivateRoute from "./components/PrivateRoute";
 import Profile from "./components/ProfileSideBar";
+import RechageStatus from "./pages/RechageStatus";
+
 function App() {
   return (
     <AuthProvider>
@@ -30,34 +31,32 @@ function App() {
         <Router basename="/">
           <Navbar />
           <Routes>
+            {/* Public Routes */}
             <Route path="/" element={<Homepage />} />
             <Route path="/login" element={<LoginScreen />} />
             <Route path="/register" element={<SignupPage />} />
             <Route path="/payment-status" element={<PaymentStatus />} />
-            {/* Private Route Wrapper */}
+            <Route path="/recharge" element={<RechageStatus />} />
+
+            {/* Private Routes */}
             <Route element={<PrivateRoute />}>
+              {/* Top-level protected route */}
+              <Route path="/permanent-ticket" element={<PermanentTicketPage />} />
+
+              {/* Dashboard nested routes */}
               <Route path="/dashboard" element={<DashboardLayout />}>
                 <Route index element={<Profile />} />
-                <Route path="balance" element={<BalancePage />} />
                 <Route path="recharge" element={<RechargePage />} />
                 <Route path="settings" element={<SettingsPage />} />
                 <Route path="history" element={<TravelHistory />} />
-                <Route
-                  path="balance-transfer"
-                  element={<BalanceTransferPage />}
-                />
-                <Route
-                  path="permanent-ticket"
-                  element={<PermanentTicketPage />}
-                />
+                <Route path="balance-transfer" element={<BalanceTransferPage />} />
+                <Route path="permanent-ticket" element={<PermanentTicketPage />} />
                 <Route path="help" element={<HelpPage />} />
               </Route>
             </Route>
           </Routes>
           <MetroFooter />
-
-          {/* Add the Bot component here */}
-            <Bot />
+          <Bot />
         </Router>
       </UserProvider>
     </AuthProvider>

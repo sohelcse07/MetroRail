@@ -1,8 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiSend, FiX, FiMessageSquare, FiMessageCircle } from 'react-icons/fi';
-import BotImage from "../assets/bot.png"
+import { FiSend, FiX, FiMessageSquare } from 'react-icons/fi';
+import BotImage from "../assets/bot.png";
 
 const Bot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -10,6 +10,16 @@ const Bot = () => {
   const [conversation, setConversation] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const inputRef = useRef(null);
+  const messagesEndRef = useRef(null);
+
+  // Auto-scroll to bottom when conversation updates
+  useEffect(() => {
+    scrollToBottom();
+  }, [conversation]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -50,11 +60,11 @@ const Bot = () => {
         style={{ display: isOpen ? 'none' : 'flex' }}
         aria-label="Open chat bot"
       >
-          <img 
-            src={BotImage} 
-            alt="Chatbot" 
-            className="w-full h-full object-cover"
-          />
+        <img 
+          src={BotImage} 
+          alt="Chatbot" 
+          className="w-full h-full object-cover"
+        />
       </motion.button>
 
       {/* Chat Window */}
@@ -161,6 +171,7 @@ const Bot = () => {
                   </div>
                 </motion.div>
               )}
+              <div ref={messagesEndRef} />
             </div>
 
             {/* Input Form */}

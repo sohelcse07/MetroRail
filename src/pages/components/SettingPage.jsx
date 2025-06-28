@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useUser } from "../../context/UserContext";
 import { GoogleGenAI } from "@google/genai";
 
 const SettingsPage = () => {
+  const { user, updateUser } = useUser();
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [nidFront, setNidFront] = useState(null);
@@ -15,17 +16,29 @@ const SettingsPage = () => {
     nid_no: "",
     blood_group: "",
     address: "",
-    gender:""
+    gender: ""
   });
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingProgress, setProcessingProgress] = useState(0);
   const [error, setError] = useState(null);
 
-  const { updateUser } = useUser();
-  
   const genAI = new GoogleGenAI({
     apiKey: "AIzaSyDmQzNQ5Nlc6rUCbZe5_slUZRJq8X5HcBI",
   });
+
+  useEffect(() => {
+    // If user data exists, pre-fill the form
+    if (user && user.nid_no) {
+      setExtractedData({
+        name: user.name || "",
+        date_of_birth: user.date_of_birth || "",
+        nid_no: user.nid_no || "",
+        blood_group: user.blood_group || "",
+        address: user.address || "",
+        gender: user.gender || ""
+      });
+    }
+  }, [user]);
 
   const handleImageUpload = (e, setImage, setPreview) => {
     const file = e.target.files[0];
@@ -38,7 +51,6 @@ const SettingsPage = () => {
   const formatDate = (dateStr) => {
     if (!dateStr) return "";
     
-    // Try to parse various date formats
     const formats = [
       { regex: /(\d{1,2})\s*(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s*(\d{4})/i, 
         handler: (match) => `${match[3]}-${String(match[2]).padStart(2, '0')}-${String(match[1]).padStart(2, '0')}` },
@@ -53,7 +65,7 @@ const SettingsPage = () => {
       if (match) return format.handler(match);
     }
 
-    return dateStr; // Return original if no format matched
+    return dateStr;
   };
 
   const extractTextFromImage = async (imageFile, isFrontSide) => {
@@ -72,13 +84,14 @@ const SettingsPage = () => {
         1. Name (English)
         2. Date of Birth (convert to YYYY-MM-DD)
         3. NID Number (digits only)
-        4.gender (based on the image )
+        4. Gender
         
         Return JSON:
         {
           "name": "",
           "dateOfBirth": "",
-          "nidNumber": ""
+          "nidNumber": "",
+          "gender": ""
         }
         Only return the JSON object.
       ` : `
@@ -146,7 +159,7 @@ const SettingsPage = () => {
         nid_no: frontData.nidNumber?.replace(/\D/g, "") || prev.nid_no,
         blood_group: backData.bloodGroup || prev.blood_group,
         address: backData.address || prev.address,
-        gender:frontData.gender|| prev.gender,
+        gender: frontData.gender || prev.gender,
       }));
 
       if (!frontData.nidNumber || !frontData.name) {
@@ -186,7 +199,21 @@ const SettingsPage = () => {
     console.log("User deleted");
     setShowDeleteModal(false);
   };
-  
+
+  const openUpdateModal = () => {
+    setShowUpdateModal(true);
+    // Reset form if user doesn't have existing data
+    if (!user?.nid_no) {
+      setExtractedData({
+        name: "",
+        date_of_birth: "",
+        nid_no: "",
+        blood_group: "",
+        address: "",
+        gender: ""
+      });
+    }
+  };
 
   return (
     <div className="p-4 max-w-6xl mx-auto">
@@ -202,12 +229,14 @@ const SettingsPage = () => {
             </div>
             <h2 className="text-lg font-medium text-gray-800">Profile Information</h2>
           </div>
-          <p className="text-sm text-gray-500 mb-4">Update your personal details using your NID card</p>
+          <p className="text-sm text-gray-500 mb-4">
+            {user?.nid_no ? "Update your existing profile" : "Add your profile using NID card"}
+          </p>
           <button
-            onClick={() => setShowUpdateModal(true)}
+            onClick={openUpdateModal}
             className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
           >
-            Update Profile
+            {user?.nid_no ? "Update Profile" : "Add Profile"}
           </button>
         </div>
 
@@ -235,105 +264,16 @@ const SettingsPage = () => {
         <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl w-full max-w-md overflow-hidden">
             <div className="p-5 border-b border-gray-200">
-              <h2 className="text-xl font-bold text-gray-800">Update Profile</h2>
+              <h2 className="text-xl font-bold text-gray-800">
+                {user?.nid_no ? "Update Profile" : "Add Profile"}
+              </h2>
             </div>
 
             <div className="p-5 overflow-y-auto max-h-[80vh]">
-              {!extractedData.name ? (
-                <>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">NID Front Side *</label>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleImageUpload(e, setNidFront, setNidFrontPreview)}
-                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                        disabled={isProcessing}
-                      />
-                      {nidFrontPreview && (
-                        <div className="mt-2">
-                          <img
-                            src={nidFrontPreview}
-                            alt="NID Front Preview"
-                            className="max-w-full h-40 object-contain border border-gray-200 rounded"
-                          />
-                        </div>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">NID Back Side *</label>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleImageUpload(e, setNidBack, setNidBackPreview)}
-                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                        disabled={isProcessing}
-                      />
-                      {nidBackPreview && (
-                        <div className="mt-2">
-                          <img
-                            src={nidBackPreview}
-                            alt="NID Back Preview"
-                            className="max-w-full h-40 object-contain border border-gray-200 rounded"
-                          />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {error && (
-                    <div className="mt-4 p-3 bg-red-50 text-red-600 text-sm rounded-lg">
-                      {error}
-                    </div>
-                  )}
-
-                  {isProcessing && (
-                    <div className="mt-4">
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-blue-600 h-2 rounded-full" 
-                          style={{ width: `${processingProgress}%` }}
-                        />
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1 text-center">
-                        Processing images... {processingProgress}%
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="mt-6 flex justify-end gap-2">
-                    <button
-                      onClick={() => {
-                        setShowUpdateModal(false);
-                        resetForm();
-                      }}
-                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-                      disabled={isProcessing}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleUpdateSubmit}
-                      disabled={!nidFront || !nidBack || isProcessing}
-                      className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-2"
-                    >
-                      {isProcessing ? (
-                        <>
-                          <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          Processing
-                        </>
-                      ) : 'Extract Data'}
-                    </button>
-                  </div>
-                </>
-              ) : (
+              {/* Show direct edit form if user already has data */}
+              {user?.nid_no ? (
                 <div className="space-y-4">
-                  <h3 className="text-md font-medium text-gray-800">Verify Your Information</h3>
+                  <h3 className="text-md font-medium text-gray-800">Edit Your Information</h3>
 
                   {error && (
                     <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg">
@@ -370,6 +310,7 @@ const SettingsPage = () => {
                         value={extractedData.nid_no}
                         onChange={(e) => handleFieldChange("nid_no", e.target.value.replace(/\D/g, ""))}
                         className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                        disabled={!!user?.nid_no} // Disable if existing user
                       />
                     </div>
 
@@ -393,30 +334,24 @@ const SettingsPage = () => {
                         rows="2"
                       />
                     </div>
+
                     <div>
                       <label className="block text-xs font-medium text-gray-500 mb-1">Gender</label>
-                      <textarea
+                      <input
+                        type="text"
                         value={extractedData.gender}
                         onChange={(e) => handleFieldChange("gender", e.target.value)}
                         className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                        rows="2"
                       />
                     </div>
                   </div>
 
                   <div className="pt-2 flex justify-end gap-2">
                     <button
-                      onClick={() => setExtractedData({
-                        name: "",
-                        date_of_birth: "",
-                        nid_no: "",
-                        blood_group: "",
-                        address: "",
-                        gender:""
-                      })}
+                      onClick={() => setShowUpdateModal(false)}
                       className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                     >
-                      Back
+                      Cancel
                     </button>
                     <button
                       onClick={handleDataUpdate}
@@ -426,6 +361,200 @@ const SettingsPage = () => {
                     </button>
                   </div>
                 </div>
+              ) : (
+                <>
+                  {/* Show NID upload form for new users */}
+                  {!extractedData.name ? (
+                    <>
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">NID Front Side *</label>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleImageUpload(e, setNidFront, setNidFrontPreview)}
+                            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                            disabled={isProcessing}
+                          />
+                          {nidFrontPreview && (
+                            <div className="mt-2">
+                              <img
+                                src={nidFrontPreview}
+                                alt="NID Front Preview"
+                                className="max-w-full h-40 object-contain border border-gray-200 rounded"
+                              />
+                            </div>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">NID Back Side *</label>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleImageUpload(e, setNidBack, setNidBackPreview)}
+                            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                            disabled={isProcessing}
+                          />
+                          {nidBackPreview && (
+                            <div className="mt-2">
+                              <img
+                                src={nidBackPreview}
+                                alt="NID Back Preview"
+                                className="max-w-full h-40 object-contain border border-gray-200 rounded"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {error && (
+                        <div className="mt-4 p-3 bg-red-50 text-red-600 text-sm rounded-lg">
+                          {error}
+                        </div>
+                      )}
+
+                      {isProcessing && (
+                        <div className="mt-4">
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div 
+                              className="bg-blue-600 h-2 rounded-full" 
+                              style={{ width: `${processingProgress}%` }}
+                            />
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1 text-center">
+                            Processing images... {processingProgress}%
+                          </p>
+                        </div>
+                      )}
+
+                      <div className="mt-6 flex justify-end gap-2">
+                        <button
+                          onClick={() => {
+                            setShowUpdateModal(false);
+                            resetForm();
+                          }}
+                          className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                          disabled={isProcessing}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={handleUpdateSubmit}
+                          disabled={!nidFront || !nidBack || isProcessing}
+                          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-2"
+                        >
+                          {isProcessing ? (
+                            <>
+                              <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              Processing
+                            </>
+                          ) : 'Extract Data'}
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    // Show extracted data confirmation for new users
+                    <div className="space-y-4">
+                      <h3 className="text-md font-medium text-gray-800">Verify Your Information</h3>
+
+                      {error && (
+                        <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg">
+                          {error}
+                        </div>
+                      )}
+
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-500 mb-1">Full Name *</label>
+                          <input
+                            type="text"
+                            value={extractedData.name}
+                            onChange={(e) => handleFieldChange("name", e.target.value)}
+                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-medium text-gray-500 mb-1">Date of Birth (YYYY-MM-DD)</label>
+                          <input
+                            type="text"
+                            value={extractedData.date_of_birth}
+                            onChange={(e) => handleFieldChange("date_of_birth", e.target.value)}
+                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="YYYY-MM-DD"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-medium text-gray-500 mb-1">NID Number *</label>
+                          <input
+                            type="text"
+                            value={extractedData.nid_no}
+                            onChange={(e) => handleFieldChange("nid_no", e.target.value.replace(/\D/g, ""))}
+                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-medium text-gray-500 mb-1">Blood Group</label>
+                          <input
+                            type="text"
+                            value={extractedData.blood_group}
+                            onChange={(e) => handleFieldChange("blood_group", e.target.value)}
+                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="A+, B-, O+, etc."
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-medium text-gray-500 mb-1">Address</label>
+                          <textarea
+                            value={extractedData.address}
+                            onChange={(e) => handleFieldChange("address", e.target.value)}
+                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                            rows="2"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-medium text-gray-500 mb-1">Gender</label>
+                          <input
+                            type="text"
+                            value={extractedData.gender}
+                            onChange={(e) => handleFieldChange("gender", e.target.value)}
+                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="pt-2 flex justify-end gap-2">
+                        <button
+                          onClick={() => setExtractedData({
+                            name: "",
+                            date_of_birth: "",
+                            nid_no: "",
+                            blood_group: "",
+                            address: "",
+                            gender: ""
+                          })}
+                          className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                        >
+                          Back
+                        </button>
+                        <button
+                          onClick={handleDataUpdate}
+                          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                        >
+                          Save Changes
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>

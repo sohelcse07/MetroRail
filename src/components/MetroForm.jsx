@@ -81,8 +81,10 @@ const MetroForm = () => {
 
       <form onSubmit={handleTicketForm} className="space-y-4">
         {/* From Field */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">From</label>
+        <div className="space-y-2 relative">
+          <label className="block text-sm font-medium text-gray-700">
+            From
+          </label>
           <Select.Root value={from} onValueChange={setFrom}>
             <Select.Trigger className="inline-flex items-center justify-between w-full px-4 py-2 text-sm bg-gray-50 rounded-md border border-gray-300 text-gray-800 hover:bg-gray-100">
               <Select.Value placeholder="Select starting point" />
@@ -90,35 +92,41 @@ const MetroForm = () => {
                 <ChevronDown className="h-4 w-4" />
               </Select.Icon>
             </Select.Trigger>
-            <Select.Content className="overflow-hidden bg-white rounded-md shadow-lg border border-gray-200 z-50">
-              <Select.ScrollUpButton className="flex items-center justify-center h-6 bg-white text-gray-500 cursor-default">
-                <ChevronUp className="h-4 w-4" />
-              </Select.ScrollUpButton>
-              <Select.Viewport className="p-1 max-h-[200px]">
-                {places
-                  .filter((place) => place !== to)
-                  .map((place, idx) => (
-                    <Select.Item
-                      key={idx}
-                      value={place}
-                      className="relative flex items-center px-7 py-2 text-sm text-gray-700 rounded-md hover:bg-teal-50 hover:text-teal-900 focus:bg-teal-50 focus:text-teal-900 outline-none cursor-pointer"
-                    >
-                      <Select.ItemText>{place}</Select.ItemText>
-                      <Select.ItemIndicator className="absolute left-2 inline-flex items-center">
-                        <Check className="h-4 w-4 text-teal-600" />
-                      </Select.ItemIndicator>
-                    </Select.Item>
-                  ))}
-              </Select.Viewport>
-              <Select.ScrollDownButton className="flex items-center justify-center h-6 bg-white text-gray-500 cursor-default">
-                <ChevronDown className="h-4 w-4" />
-              </Select.ScrollDownButton>
-            </Select.Content>
+            <Select.Portal>
+              <Select.Content
+                className="absolute z-50 min-w-[var(--radix-select-trigger-width)] bg-white rounded-md shadow-lg border border-gray-200"
+                position="popper"
+                sideOffset={4}
+              >
+                <Select.ScrollUpButton className="flex items-center justify-center h-6 bg-white text-gray-500 cursor-default">
+                  <ChevronUp className="h-4 w-4" />
+                </Select.ScrollUpButton>
+                <Select.Viewport className="p-1 max-h-[200px]">
+                  {places
+                    .filter((place) => place !== to)
+                    .map((place, idx) => (
+                      <Select.Item
+                        key={idx}
+                        value={place}
+                        className="relative flex items-center px-7 py-2 text-sm text-gray-700 rounded-md hover:bg-teal-50 hover:text-teal-900 focus:bg-teal-50 focus:text-teal-900 outline-none cursor-pointer"
+                      >
+                        <Select.ItemText>{place}</Select.ItemText>
+                        <Select.ItemIndicator className="absolute left-2 inline-flex items-center">
+                          <Check className="h-4 w-4 text-teal-600" />
+                        </Select.ItemIndicator>
+                      </Select.Item>
+                    ))}
+                </Select.Viewport>
+                <Select.ScrollDownButton className="flex items-center justify-center h-6 bg-white text-gray-500 cursor-default">
+                  <ChevronDown className="h-4 w-4" />
+                </Select.ScrollDownButton>
+              </Select.Content>
+            </Select.Portal>
           </Select.Root>
         </div>
 
         {/* To Field */}
-        <div className="space-y-2">
+        <div className="space-y-2 relative">
           <label className="block text-sm font-medium text-gray-700">To</label>
           <Select.Root value={to} onValueChange={setTo}>
             <Select.Trigger className="inline-flex items-center justify-between w-full px-4 py-2 text-sm bg-gray-50 rounded-md border border-gray-300 text-gray-800 hover:bg-gray-100">
@@ -127,33 +135,38 @@ const MetroForm = () => {
                 <ChevronDown className="h-4 w-4" />
               </Select.Icon>
             </Select.Trigger>
-            <Select.Content className="overflow-hidden bg-white rounded-md shadow-lg border border-gray-200 z-50">
-              <Select.ScrollUpButton className="flex items-center justify-center h-6 bg-white text-gray-500 cursor-default">
-                <ChevronUp className="h-4 w-4" />
-              </Select.ScrollUpButton>
-              <Select.Viewport className="p-1 max-h-[200px]">
-                {places
-                  .filter((place) => place !== from)
-                  .map((place, idx) => (
-                    <Select.Item
-                      key={idx}
-                      value={place}
-                      className="relative flex items-center px-7 py-2 text-sm text-gray-700 rounded-md hover:bg-teal-50 hover:text-teal-900 focus:bg-teal-50 focus:text-teal-900 outline-none cursor-pointer"
-                    >
-                      <Select.ItemText>{place}</Select.ItemText>
-                      <Select.ItemIndicator className="absolute left-2 inline-flex items-center">
-                        <Check className="h-4 w-4 text-teal-600" />
-                      </Select.ItemIndicator>
-                    </Select.Item>
-                  ))}
-              </Select.Viewport>
-              <Select.ScrollDownButton className="flex items-center justify-center h-6 bg-white text-gray-500 cursor-default">
-                <ChevronDown className="h-4 w-4" />
-              </Select.ScrollDownButton>
-            </Select.Content>
+            <Select.Portal>
+              <Select.Content
+                className="absolute z-50 min-w-[var(--radix-select-trigger-width)] bg-white rounded-md shadow-lg border border-gray-200"
+                position="popper"
+                sideOffset={4}
+              >
+                <Select.ScrollUpButton className="flex items-center justify-center h-6 bg-white text-gray-500 cursor-default">
+                  <ChevronUp className="h-4 w-4" />
+                </Select.ScrollUpButton>
+                <Select.Viewport className="p-1 max-h-[200px]">
+                  {places
+                    .filter((place) => place !== from)
+                    .map((place, idx) => (
+                      <Select.Item
+                        key={idx}
+                        value={place}
+                        className="relative flex items-center px-7 py-2 text-sm text-gray-700 rounded-md hover:bg-teal-50 hover:text-teal-900 focus:bg-teal-50 focus:text-teal-900 outline-none cursor-pointer"
+                      >
+                        <Select.ItemText>{place}</Select.ItemText>
+                        <Select.ItemIndicator className="absolute left-2 inline-flex items-center">
+                          <Check className="h-4 w-4 text-teal-600" />
+                        </Select.ItemIndicator>
+                      </Select.Item>
+                    ))}
+                </Select.Viewport>
+                <Select.ScrollDownButton className="flex items-center justify-center h-6 bg-white text-gray-500 cursor-default">
+                  <ChevronDown className="h-4 w-4" />
+                </Select.ScrollDownButton>
+              </Select.Content>
+            </Select.Portal>
           </Select.Root>
         </div>
-
         {/* Ticket Type */}
         <div className="flex rounded-md overflow-hidden border border-gray-300">
           <button
@@ -174,7 +187,10 @@ const MetroForm = () => {
 
         {/* Telegram Number Field */}
         <div className="space-y-2">
-          <label htmlFor="telegram" className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor="telegram"
+            className="block text-sm font-medium text-gray-700"
+          >
             Telegram Number
           </label>
           <input
@@ -228,7 +244,11 @@ const MetroForm = () => {
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
           <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md p-6 bg-white rounded-lg shadow-lg focus:outline-none">
-            <Dialog.Title className={`text-lg font-semibold ${dialogContent.isError ? "text-red-600" : "text-teal-600"}`}>
+            <Dialog.Title
+              className={`text-lg font-semibold ${
+                dialogContent.isError ? "text-red-600" : "text-teal-600"
+              }`}
+            >
               {dialogContent.title}
             </Dialog.Title>
             <Dialog.Description className="mt-2 text-gray-600">
