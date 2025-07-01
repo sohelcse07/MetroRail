@@ -199,7 +199,7 @@ const MetroForm = () => {
             value={teleNumber}
             onChange={(e) => setTeleNumber(e.target.value)}
             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500"
-            placeholder="Enter Telegram number"
+            placeholder="ex:- 01234567890"
             required
           />
         </div>
@@ -240,7 +240,7 @@ const MetroForm = () => {
       </form>
 
       {/* Radix Dialog for messages */}
-      <Dialog.Root open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog.Root className="z-50" open={dialogOpen} onOpenChange={setDialogOpen}>
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
           <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md p-6 bg-white rounded-lg shadow-lg focus:outline-none">
