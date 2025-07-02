@@ -33,7 +33,7 @@ const MetroForm = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogContent, setDialogContent] = useState({
     title: "",
-    message: "",
+    error: "",
     isError: false,
   });
 
@@ -67,7 +67,7 @@ const MetroForm = () => {
         console.error("API Error:", err);
         showDialog(
           "Payment Error",
-          "Failed to initiate payment. Please try again.",
+          "Invalid phone number. Please enter a valid Bangladeshi phone number.",
           true
         );
       });

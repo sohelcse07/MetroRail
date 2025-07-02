@@ -37,7 +37,7 @@ const RechageStatus = () => {
           textColor: 'text-green-600',
           buttonColor: 'bg-green-600 hover:bg-green-700',
         };
-      case 'failed':
+      case 'fail':
         return {
           icon: <XCircle className="w-20 h-20 text-red-500" />,
           title: 'Payment Failed',
