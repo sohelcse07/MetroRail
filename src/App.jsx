@@ -23,6 +23,7 @@ import Bot from "./components/Bot";
 import PrivateRoute from "./components/PrivateRoute";
 import Profile from "./components/ProfileSideBar";
 import RechageStatus from "./pages/RechageStatus";
+import Notification from "./components/Notification";
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
             {/* Public Routes */}
             <Route path="/" element={<Homepage />} />
             <Route path="/login" element={<LoginScreen />} />
+            <Route path="/notification" element={<Notification />} />
             <Route path="/register" element={<SignupPage />} />
             <Route path="/payment-status" element={<PaymentStatus />} />
             <Route path="/recharge" element={<RechageStatus />} />

@@ -122,7 +122,7 @@ const PermanentTicketPage = () => {
     setActionLoading({...actionLoading, delete: true});
     try {
       await axios.delete(
-        `${import.meta.env.VITE_SERVER_URL}/permanent-journey/ticket/get`,
+        `${import.meta.env.VITE_SERVER_URL}/permanent-journey/ticket/delete`,
         {
           headers: {
             Authorization: `Token ${token}`
