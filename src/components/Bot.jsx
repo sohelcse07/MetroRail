@@ -57,7 +57,7 @@ const Bot = () => {
     return null;
 
   return (
-    <div className="fixed bottom-8 md:right-8 z-50">
+    <div className="fixed bottom-2 md:bottom-8 right-0 md:right-8 z-50">
       {/* Bot Icon Button */}
       <motion.button
         whileHover={{ scale: 1.1 }}

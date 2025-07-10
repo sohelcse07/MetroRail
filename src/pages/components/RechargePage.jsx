@@ -13,6 +13,7 @@ const WalletComponent = () => {
     payment: false,
   });
   const [error, setError] = useState(null);
+  const [showError, setShowError] = useState(true);
   const [paymentAmount, setPaymentAmount] = useState(500);
   const [paymentUrl, setPaymentUrl] = useState(null);
 
@@ -31,6 +32,7 @@ const WalletComponent = () => {
       setError(null);
     } catch (err) {
       setError(err.response?.data || "Failed to fetch balance");
+      setShowError(true);
     } finally {
       setLoading((prev) => ({ ...prev, balance: false }));
     }
@@ -51,6 +53,7 @@ const WalletComponent = () => {
       setError(null);
     } catch (err) {
       setError(err.response?.data || "Failed to fetch history");
+      setShowError(true);
     } finally {
       setLoading((prev) => ({ ...prev, history: false }));
     }
@@ -71,10 +74,10 @@ const WalletComponent = () => {
         }
       );
       setPaymentUrl(response.data.payment_url);
-      // Redirect to payment URL
       window.location.href = response.data.payment_url;
     } catch (err) {
-      setError(err.response?.data || "Failed to initiate payment");
+      setError(err.response?.data?.error || "Failed to initiate payment");
+      setShowError(true);
     } finally {
       setLoading((prev) => ({ ...prev, payment: false }));
     }
@@ -91,43 +94,52 @@ const WalletComponent = () => {
     return <WalletSkeleton />;
   }
 
-  if (error) {
-    return (
-      <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
-        <div className="flex">
-          <div className="flex-shrink-0">
-            <svg
-              className="h-5 w-5 text-red-500"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </div>
-          <div className="ml-3">
-            <h3 className="text-sm font-medium text-red-800">
-              {typeof error === "object"
-                ? JSON.stringify(error)
-                : error.toString()}
-            </h3>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="max-w-6xl mx-auto">
+        {error && showError && (
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 relative rounded-md">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg
+                  className="h-5 w-5 text-red-500"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div className="ml-3 flex-1">
+                <h3 className="text-sm font-medium text-red-800">
+                  {typeof error === "object"
+                    ? JSON.stringify(error)
+                    : error.toString()}
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowError(false)}
+                className="ml-4 text-red-500 hover:text-red-700 focus:outline-none"
+              >
+                <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path
+                    fillRule="evenodd"
+                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="mb-6 text-center">
           <h1 className="text-2xl font-bold text-gray-800 mb-2">Wallet</h1>
         </div>
 
-        {/* Flex row for Balance Card and Recharge Form */}
         <div className="flex flex-col md:flex-row gap-6 mb-6">
           {/* Balance Card */}
           <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100 flex-1">
@@ -217,7 +229,7 @@ const WalletComponent = () => {
           </div>
         </div>
 
-        {/* Transaction History - Full width column */}
+        {/* Recharge History */}
         <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100">
           <h2 className="text-lg font-semibold text-gray-700 mb-4">
             Recharge History
@@ -231,28 +243,16 @@ const WalletComponent = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Amount
                     </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Method
                     </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
                     </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Date
                     </th>
                   </tr>
