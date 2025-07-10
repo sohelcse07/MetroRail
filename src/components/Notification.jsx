@@ -396,7 +396,7 @@ const Notification = () => {
                     </div>
                     
                     {/* Add Comment Form */}
-                    {user && (
+                    {token && (
                       <form 
                         onSubmit={(e) => handleAddComment(e, notificationId)} 
                         className="flex items-center gap-2"
