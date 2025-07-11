@@ -21,10 +21,7 @@ const BrandingMetro = () => {
                 <p className="text-sm text-gray-600">Seamless Urban Mobility</p>
               </div>
             </div>
-            <div className="hidden md:flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-full">
-              <Smartphone className="h-4 w-4" />
-              <span className="text-sm font-medium">Download App</span>
-            </div>
+            
           </div>
         </div>
       </header>

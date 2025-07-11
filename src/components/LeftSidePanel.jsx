@@ -132,7 +132,7 @@ const LeftSidePanel = ({ isCollapsed, toggleCollapse, closeSidebar }) => {
               className="min-w-[200px] bg-white rounded-md shadow-lg border border-gray-200 p-1 z-50"
             >
               <DropdownMenu.Item className="text-sm p-2 rounded hover:bg-gray-100 cursor-pointer outline-none">
-                <Link to="/dashboard/profile" className="flex items-center">
+                <Link to="/dashboard" className="flex items-center">
                   <User className="w-4 h-4 mr-2" />
                   My Profile
                 </Link>

@@ -9,6 +9,7 @@ import {
 
 const StatusAlert = ({ statusCode, message, className = "" }) => {
   const [visible, setVisible] = useState(true);
+  console.log(statusCode)
 
   useEffect(() => {
     const handleEsc = (e) => {

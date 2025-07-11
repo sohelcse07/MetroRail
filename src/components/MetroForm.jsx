@@ -3,9 +3,11 @@ import UseAxiosSecure from "../hooks/useAxiosSecure";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as Select from "@radix-ui/react-select";
 import { ChevronDown, ChevronUp, Check } from "lucide-react";
+import { useUser } from "../context/UserContext";
 
 const MetroForm = () => {
   const axiosSecure = UseAxiosSecure();
+  const {user}=useUser();
 
   const places = [
     "Uttara North",
@@ -196,7 +198,8 @@ const MetroForm = () => {
           <input
             id="telegram"
             type="text"
-            value={teleNumber}
+            value={(user?.phone_number?.slice(2) || teleNumber)}
+
             onChange={(e) => setTeleNumber(e.target.value)}
             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500"
             placeholder="ex:- 01234567890"

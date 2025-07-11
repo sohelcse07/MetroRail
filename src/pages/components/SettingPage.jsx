@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useUser } from "../../context/UserContext";
 import { GoogleGenAI } from "@google/genai";
+import UserEditForm from "../../components/UserEditForm";
+import UserForm from "../../components/userForm";
+import axios from "axios";
+import StatusAlert from "../../components/StatusAlert";
 
 const SettingsPage = () => {
   const { user, updateUser } = useUser();
@@ -10,15 +14,19 @@ const SettingsPage = () => {
   const [nidBack, setNidBack] = useState(null);
   const [nidFrontPreview, setNidFrontPreview] = useState("");
   const [nidBackPreview, setNidBackPreview] = useState("");
+  const [alertStatus, setAlertStatus] = useState(null); // e.g., 200, 400, 500
+  const [alertMessage, setAlertMessage] = useState("");
+
   const [extractedData, setExtractedData] = useState({
     name: "",
     date_of_birth: "",
     nid_no: "",
     blood_group: "",
     address: "",
-    gender: ""
+    gender: "",
   });
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showManulaModal, setShowManualModal] = useState(false);
   const [processingProgress, setProcessingProgress] = useState(0);
   const [error, setError] = useState(null);
 
@@ -35,7 +43,7 @@ const SettingsPage = () => {
         nid_no: user.nid_no || "",
         blood_group: user.blood_group || "",
         address: user.address || "",
-        gender: user.gender || ""
+        gender: user.gender || "",
       });
     }
   }, [user]);
@@ -50,14 +58,32 @@ const SettingsPage = () => {
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "";
-    
+
     const formats = [
-      { regex: /(\d{1,2})\s*(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s*(\d{4})/i, 
-        handler: (match) => `${match[3]}-${String(match[2]).padStart(2, '0')}-${String(match[1]).padStart(2, '0')}` },
-      { regex: /(\d{1,2})\/(\d{1,2})\/(\d{4})/, 
-        handler: (match) => `${match[3]}-${match[2].padStart(2, '0')}-${match[1].padStart(2, '0')}` },
-      { regex: /(\d{4})-(\d{1,2})-(\d{1,2})/, 
-        handler: (match) => `${match[1]}-${match[2].padStart(2, '0')}-${match[3].padStart(2, '0')}` }
+      {
+        regex:
+          /(\d{1,2})\s*(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s*(\d{4})/i,
+        handler: (match) =>
+          `${match[3]}-${String(match[2]).padStart(2, "0")}-${String(
+            match[1]
+          ).padStart(2, "0")}`,
+      },
+      {
+        regex: /(\d{1,2})\/(\d{1,2})\/(\d{4})/,
+        handler: (match) =>
+          `${match[3]}-${match[2].padStart(2, "0")}-${match[1].padStart(
+            2,
+            "0"
+          )}`,
+      },
+      {
+        regex: /(\d{4})-(\d{1,2})-(\d{1,2})/,
+        handler: (match) =>
+          `${match[1]}-${match[2].padStart(2, "0")}-${match[3].padStart(
+            2,
+            "0"
+          )}`,
+      },
     ];
 
     for (const format of formats) {
@@ -74,12 +100,13 @@ const SettingsPage = () => {
     try {
       const base64Data = await new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = () => resolve(reader.result.split(',')[1]);
-        reader.onerror = () => reject(new Error('Failed to read file'));
+        reader.onload = () => resolve(reader.result.split(",")[1]);
+        reader.onerror = () => reject(new Error("Failed to read file"));
         reader.readAsDataURL(imageFile);
       });
 
-      const prompt = isFrontSide ? `
+      const prompt = isFrontSide
+        ? `
         Extract from Bangladeshi NID FRONT:
         1. Name (English)
         2. Date of Birth (convert to YYYY-MM-DD)
@@ -94,7 +121,8 @@ const SettingsPage = () => {
           "gender": ""
         }
         Only return the JSON object.
-      ` : `
+      `
+        : `
         Extract from Bangladeshi NID BACK:
         1. Blood Group (A+, B-, etc.)
         2. Full Address
@@ -113,14 +141,15 @@ const SettingsPage = () => {
           role: "user",
           parts: [
             { inlineData: { mimeType: imageFile.type, data: base64Data } },
-            { text: prompt }
+            { text: prompt },
           ],
         },
       });
 
-      let result = typeof response.text === 'string' ? 
-        JSON.parse(response.text.match(/\{[\s\S]*\}/)?.[0] || response.text) : 
-        response.text;
+      let result =
+        typeof response.text === "string"
+          ? JSON.parse(response.text.match(/\{[\s\S]*\}/)?.[0] || response.text)
+          : response.text;
 
       if (isFrontSide && result.dateOfBirth) {
         result.dateOfBirth = formatDate(result.dateOfBirth);
@@ -152,7 +181,7 @@ const SettingsPage = () => {
       const backData = await extractTextFromImage(nidBack, false);
       setProcessingProgress(100);
 
-      setExtractedData(prev => ({
+      setExtractedData((prev) => ({
         ...prev,
         name: frontData.name || prev.name,
         date_of_birth: frontData.dateOfBirth || prev.date_of_birth,
@@ -172,16 +201,32 @@ const SettingsPage = () => {
     }
   };
 
-  const handleDataUpdate = () => {
-    if (!extractedData.nid_no || !extractedData.name) {
+ const handleDataUpdate = async (updatedData) => {
+  try {
+    if (!updatedData.nid_no || !updatedData.name) {
       setError("Name and NID Number are required");
-      return;
+      return { status: 400 };
     }
 
-    updateUser(extractedData);
-    setShowUpdateModal(false);
+    console.log("Updated from form:", updatedData);
+
+    const res = await updateUser(updatedData); // returns updated user data
+
+    // ✅ Assume success if it returns without error
+    setAlertStatus(200);
+    setAlertMessage("Profile updated successfully.");
+    setShowManualModal(false);
     resetForm();
-  };
+
+    return { status: 200, data: res }; // include returned user if needed
+  } catch (error) {
+    console.error("Update error:", error);
+    setAlertStatus(error.response?.status || 500);
+    setAlertMessage("Server error occurred.");
+    return { status: 500 };
+  }
+};
+
 
   const resetForm = () => {
     setNidFront(null);
@@ -192,7 +237,7 @@ const SettingsPage = () => {
   };
 
   const handleFieldChange = (field, value) => {
-    setExtractedData(prev => ({ ...prev, [field]: value }));
+    setExtractedData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleDelete = () => {
@@ -210,27 +255,42 @@ const SettingsPage = () => {
         nid_no: "",
         blood_group: "",
         address: "",
-        gender: ""
+        gender: "",
       });
     }
   };
 
   return (
     <div className="p-4 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">Account Settings</h1>
+      <h1 className="text-2xl font-bold text-gray-800 mb-6">
+        Account Settings
+      </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
           <div className="flex items-center gap-3 mb-3">
             <div className="p-2 rounded-full bg-blue-50 text-blue-600">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                  clipRule="evenodd"
+                />
               </svg>
             </div>
-            <h2 className="text-lg font-medium text-gray-800">Profile Information</h2>
+            <h2 className="text-lg font-medium text-gray-800">
+              Profile Information
+            </h2>
           </div>
           <p className="text-sm text-gray-500 mb-4">
-            {user?.nid_no ? "Update your existing profile" : "Add your profile using NID card"}
+            {user?.nid_no
+              ? "Update your existing profile"
+              : "Add your profile using NID card"}
           </p>
           <button
             onClick={openUpdateModal}
@@ -243,13 +303,26 @@ const SettingsPage = () => {
         <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
           <div className="flex items-center gap-3 mb-3">
             <div className="p-2 rounded-full bg-red-50 text-red-600">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
               </svg>
             </div>
-            <h2 className="text-lg font-medium text-gray-800">Delete Account</h2>
+            <h2 className="text-lg font-medium text-gray-800">
+              Delete Account
+            </h2>
           </div>
-          <p className="text-sm text-gray-500 mb-4">Permanently remove your account and all data</p>
+          <p className="text-sm text-gray-500 mb-4">
+            Permanently remove your account and all data
+          </p>
           <button
             onClick={() => setShowDeleteModal(true)}
             className="w-full py-2 px-4 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-sm font-medium"
@@ -270,97 +343,15 @@ const SettingsPage = () => {
             </div>
 
             <div className="p-5 overflow-y-auto max-h-[80vh]">
-              {/* Show direct edit form if user already has data */}
               {user?.nid_no ? (
-                <div className="space-y-4">
-                  <h3 className="text-md font-medium text-gray-800">Edit Your Information</h3>
-
-                  {error && (
-                    <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg">
-                      {error}
-                    </div>
-                  )}
-
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-500 mb-1">Full Name *</label>
-                      <input
-                        type="text"
-                        value={extractedData.name}
-                        onChange={(e) => handleFieldChange("name", e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-medium text-gray-500 mb-1">Date of Birth (YYYY-MM-DD)</label>
-                      <input
-                        type="text"
-                        value={extractedData.date_of_birth}
-                        onChange={(e) => handleFieldChange("date_of_birth", e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="YYYY-MM-DD"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-medium text-gray-500 mb-1">NID Number *</label>
-                      <input
-                        type="text"
-                        value={extractedData.nid_no}
-                        onChange={(e) => handleFieldChange("nid_no", e.target.value.replace(/\D/g, ""))}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                        disabled={!!user?.nid_no} // Disable if existing user
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-medium text-gray-500 mb-1">Blood Group</label>
-                      <input
-                        type="text"
-                        value={extractedData.blood_group}
-                        onChange={(e) => handleFieldChange("blood_group", e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="A+, B-, O+, etc."
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-medium text-gray-500 mb-1">Address</label>
-                      <textarea
-                        value={extractedData.address}
-                        onChange={(e) => handleFieldChange("address", e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                        rows="2"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-medium text-gray-500 mb-1">Gender</label>
-                      <input
-                        type="text"
-                        value={extractedData.gender}
-                        onChange={(e) => handleFieldChange("gender", e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="pt-2 flex justify-end gap-2">
-                    <button
-                      onClick={() => setShowUpdateModal(false)}
-                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleDataUpdate}
-                      className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
-                    >
-                      Save Changes
-                    </button>
-                  </div>
-                </div>
+                <UserEditForm
+                  user={user}
+                  extractedData={extractedData}
+                  handleFieldChange={handleFieldChange}
+                  handleDataUpdate={handleDataUpdate}
+                  error={error}
+                  setShowUpdateModal={setShowUpdateModal}
+                />
               ) : (
                 <>
                   {/* Show NID upload form for new users */}
@@ -368,11 +359,19 @@ const SettingsPage = () => {
                     <>
                       <div className="space-y-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">NID Front Side *</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            NID Front Side *
+                          </label>
                           <input
                             type="file"
                             accept="image/*"
-                            onChange={(e) => handleImageUpload(e, setNidFront, setNidFrontPreview)}
+                            onChange={(e) =>
+                              handleImageUpload(
+                                e,
+                                setNidFront,
+                                setNidFrontPreview
+                              )
+                            }
                             className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                             disabled={isProcessing}
                           />
@@ -388,11 +387,19 @@ const SettingsPage = () => {
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">NID Back Side *</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            NID Back Side *
+                          </label>
                           <input
                             type="file"
                             accept="image/*"
-                            onChange={(e) => handleImageUpload(e, setNidBack, setNidBackPreview)}
+                            onChange={(e) =>
+                              handleImageUpload(
+                                e,
+                                setNidBack,
+                                setNidBackPreview
+                              )
+                            }
                             className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                             disabled={isProcessing}
                           />
@@ -417,8 +424,8 @@ const SettingsPage = () => {
                       {isProcessing && (
                         <div className="mt-4">
                           <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div 
-                              className="bg-blue-600 h-2 rounded-full" 
+                            <div
+                              className="bg-blue-600 h-2 rounded-full"
                               style={{ width: `${processingProgress}%` }}
                             />
                           </div>
@@ -446,20 +453,40 @@ const SettingsPage = () => {
                         >
                           {isProcessing ? (
                             <>
-                              <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              <svg
+                                className="animate-spin h-4 w-4 text-white"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                              >
+                                <circle
+                                  className="opacity-25"
+                                  cx="12"
+                                  cy="12"
+                                  r="10"
+                                  stroke="currentColor"
+                                  strokeWidth="4"
+                                ></circle>
+                                <path
+                                  className="opacity-75"
+                                  fill="currentColor"
+                                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                ></path>
                               </svg>
                               Processing
                             </>
-                          ) : 'Extract Data'}
+                          ) : (
+                            "Extract Data"
+                          )}
                         </button>
                       </div>
                     </>
                   ) : (
                     // Show extracted data confirmation for new users
                     <div className="space-y-4">
-                      <h3 className="text-md font-medium text-gray-800">Verify Your Information</h3>
+                      <h3 className="text-md font-medium text-gray-800">
+                        Verify Your Information
+                      </h3>
 
                       {error && (
                         <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg">
@@ -469,63 +496,90 @@ const SettingsPage = () => {
 
                       <div className="space-y-3">
                         <div>
-                          <label className="block text-xs font-medium text-gray-500 mb-1">Full Name *</label>
+                          <label className="block text-xs font-medium text-gray-500 mb-1">
+                            Full Name *
+                          </label>
                           <input
                             type="text"
                             value={extractedData.name}
-                            onChange={(e) => handleFieldChange("name", e.target.value)}
+                            onChange={(e) =>
+                              handleFieldChange("name", e.target.value)
+                            }
                             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-xs font-medium text-gray-500 mb-1">Date of Birth (YYYY-MM-DD)</label>
+                          <label className="block text-xs font-medium text-gray-500 mb-1">
+                            Date of Birth (YYYY-MM-DD)
+                          </label>
                           <input
                             type="text"
                             value={extractedData.date_of_birth}
-                            onChange={(e) => handleFieldChange("date_of_birth", e.target.value)}
+                            onChange={(e) =>
+                              handleFieldChange("date_of_birth", e.target.value)
+                            }
                             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                             placeholder="YYYY-MM-DD"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-xs font-medium text-gray-500 mb-1">NID Number *</label>
+                          <label className="block text-xs font-medium text-gray-500 mb-1">
+                            NID Number
+                          </label>
                           <input
                             type="text"
                             value={extractedData.nid_no}
-                            onChange={(e) => handleFieldChange("nid_no", e.target.value.replace(/\D/g, ""))}
+                            onChange={(e) =>
+                              handleFieldChange(
+                                "nid_no",
+                                e.target.value.replace(/\D/g, "")
+                              )
+                            }
                             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-xs font-medium text-gray-500 mb-1">Blood Group</label>
+                          <label className="block text-xs font-medium text-gray-500 mb-1">
+                            Blood Group
+                          </label>
                           <input
                             type="text"
                             value={extractedData.blood_group}
-                            onChange={(e) => handleFieldChange("blood_group", e.target.value)}
+                            onChange={(e) =>
+                              handleFieldChange("blood_group", e.target.value)
+                            }
                             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                             placeholder="A+, B-, O+, etc."
                           />
                         </div>
 
                         <div>
-                          <label className="block text-xs font-medium text-gray-500 mb-1">Address</label>
+                          <label className="block text-xs font-medium text-gray-500 mb-1">
+                            Address
+                          </label>
                           <textarea
                             value={extractedData.address}
-                            onChange={(e) => handleFieldChange("address", e.target.value)}
+                            onChange={(e) =>
+                              handleFieldChange("address", e.target.value)
+                            }
                             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                             rows="2"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-xs font-medium text-gray-500 mb-1">Gender</label>
+                          <label className="block text-xs font-medium text-gray-500 mb-1">
+                            Gender
+                          </label>
                           <input
                             type="text"
                             value={extractedData.gender}
-                            onChange={(e) => handleFieldChange("gender", e.target.value)}
+                            onChange={(e) =>
+                              handleFieldChange("gender", e.target.value)
+                            }
                             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                           />
                         </div>
@@ -533,14 +587,16 @@ const SettingsPage = () => {
 
                       <div className="pt-2 flex justify-end gap-2">
                         <button
-                          onClick={() => setExtractedData({
-                            name: "",
-                            date_of_birth: "",
-                            nid_no: "",
-                            blood_group: "",
-                            address: "",
-                            gender: ""
-                          })}
+                          onClick={() =>
+                            setExtractedData({
+                              name: "",
+                              date_of_birth: "",
+                              nid_no: "",
+                              blood_group: "",
+                              address: "",
+                              gender: "",
+                            })
+                          }
                           className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                         >
                           Back
@@ -566,19 +622,34 @@ const SettingsPage = () => {
         <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl w-full max-w-md overflow-hidden">
             <div className="p-5 border-b border-gray-200">
-              <h2 className="text-xl font-bold text-gray-800">Delete Account</h2>
+              <h2 className="text-xl font-bold text-gray-800">
+                Delete Account
+              </h2>
             </div>
 
             <div className="p-5">
               <div className="text-center">
                 <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-3">
-                  <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  <svg
+                    className="h-6 w-6 text-red-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                    />
                   </svg>
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-1">Confirm Account Deletion</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-1">
+                  Confirm Account Deletion
+                </h3>
                 <p className="text-sm text-gray-500">
-                  This will permanently delete your account and all data. This action cannot be undone.
+                  This will permanently delete your account and all data. This
+                  action cannot be undone.
                 </p>
               </div>
 
@@ -599,6 +670,32 @@ const SettingsPage = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {Object.values(extractedData).every((val) => val.trim() === "") && (
+        <div className="mt-8 text-center text-gray-500 text-5xl">or</div>
+      )}
+
+      {showManulaModal && (
+        <UserForm
+          extractedData={extractedData}
+          setShowManualModal={setShowManualModal}
+          handleDataUpdate={handleDataUpdate}
+        />
+      )}
+      {!showManulaModal &&
+        Object.values(extractedData).some((val) => val.trim() == "") && (
+          <div className="mt-4 text-center">
+            <button
+              onClick={() => setShowManualModal(true)}
+              className="mt-4 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Add Profile Manually
+            </button>
+          </div>
+        )}
+      {alertMessage && (
+        <StatusAlert statusCode={alertStatus} message={alertMessage} />
       )}
     </div>
   );
