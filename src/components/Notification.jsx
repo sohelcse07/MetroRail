@@ -95,7 +95,7 @@ const Notification = () => {
       setShowReactionPickerMap(prev => ({ ...prev, [notificationId]: false }));
     } else {
       setExpandedNotificationId(notificationId);
-      fetchNotificationDetails(notificationId); // Always fetch details when expanding
+      fetchNotificationDetails(notificationId);
     }
   };
 
@@ -153,11 +153,9 @@ const Notification = () => {
         
         let updatedReactions;
         if (existingIndex >= 0) {
-          // Update existing reaction
           updatedReactions = [...currentReactions];
           updatedReactions[existingIndex] = data;
         } else {
-          // Add new reaction
           updatedReactions = [...currentReactions, data];
         }
         
@@ -192,12 +190,6 @@ const Notification = () => {
     }
   };
 
-  // Count reactions by type for a specific notification
-  const countReactions = (notificationId, type) => {
-    const notificationReactions = reactionsMap[notificationId] || [];
-    return notificationReactions.filter(r => r.reaction === type).length;
-  };
-
   // Get user's reaction to a specific notification
   const getUserReaction = (notificationId) => {
     if (!user) return null;
@@ -223,7 +215,6 @@ const Notification = () => {
             const notificationId = notification.id;
             const isExpanded = expandedNotificationId === notificationId;
             const comments = commentsMap[notificationId] || [];
-            const reactions = reactionsMap[notificationId] || [];
             const showReactionPicker = showReactionPickerMap[notificationId] || false;
             const newComment = newCommentMap[notificationId] || '';
             const userReaction = getUserReaction(notificationId);
@@ -253,7 +244,7 @@ const Notification = () => {
                       onClick={() => toggleExpandNotification(notificationId)}
                     >
                       <FaComment className="mr-1" />
-                      <span>{comments.length>0?comments.length:""} comments</span>
+                      <span>{notification.total_comments} comments</span>
                     </button>
                     
                     {/* Reactions Button */}
@@ -271,12 +262,12 @@ const Notification = () => {
                         {userReaction ? (
                           <>
                             {getReactionIcon(userReaction)}
-                            <span className="ml-1">{reactions.length>0?reactions.length:""} reactions</span>
+                            <span className="ml-1">{notification.total_reactions} reactions</span>
                           </>
                         ) : (
                           <>
                             <FaThumbsUp className="mr-1" />
-                            <span>{reactions.length>0?reactions.length:""} reactions</span>
+                            <span>{notification.total_reactions} reactions</span>
                           </>
                         )}
                       </button>
@@ -317,47 +308,6 @@ const Notification = () => {
                 {/* Expanded Comments Section */}
                 {isExpanded && (
                   <div className="border-t border-gray-200 p-6">
-                    {/* Reaction Summary */}
-                    <div className="mb-6">
-                      <div className="flex flex-wrap gap-2">
-                        {['like', 'dislike', 'love', 'laugh', 'wow', 'sad', 'angry', 'neutral'].map((reaction) => {
-                          const count = countReactions(notificationId, reaction);
-                          if (count === 0) return null;
-                          return (
-                            <div 
-                              key={reaction} 
-                              className="flex items-center px-3 py-1 rounded-full"
-                              style={{
-                                backgroundColor: {
-                                  like: '#EFF6FF',
-                                  dislike: '#EFF6FF',
-                                  love: '#FEE2E2',
-                                  laugh: '#FEF3C7',
-                                  wow: '#F3E8FF',
-                                  sad: '#F3F4F6',
-                                  angry: '#FEE2E2',
-                                  neutral: '#F3F4F6'
-                                }[reaction],
-                                color: {
-                                  like: '#3B82F6',
-                                  dislike: '#3B82F6',
-                                  love: '#DC2626',
-                                  laugh: '#D97706',
-                                  wow: '#9333EA',
-                                  sad: '#6B7280',
-                                  angry: '#DC2626',
-                                  neutral: '#6B7280'
-                                }[reaction]
-                              }}
-                            >
-                              {getReactionIcon(reaction)}
-                              <span className="ml-1 text-sm">{count}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                    
                     {/* Comments List */}
                     <div className="mb-6">
                       <h3 className="text-sm font-semibold text-gray-500 mb-4">

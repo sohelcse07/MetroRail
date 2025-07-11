@@ -1,13 +1,13 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import UseAxiosSecure from "../hooks/useAxiosSecure";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as Select from "@radix-ui/react-select";
-import { ChevronDown, ChevronUp, Check } from "lucide-react";
+import { ChevronDown, ChevronUp, Check, Info, Send } from "lucide-react";
 import { useUser } from "../context/UserContext";
 
 const MetroForm = () => {
   const axiosSecure = UseAxiosSecure();
-  const {user}=useUser();
+  const { user } = useUser();
 
   const places = [
     "Uttara North",
@@ -30,7 +30,9 @@ const MetroForm = () => {
 
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
-  const [teleNumber, setTeleNumber] = useState("");
+  const [teleNumber, setTeleNumber] = useState(
+    user?.phone_number?.slice(2) || ""
+  );
   const [ticketCount, setTicketCount] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogContent, setDialogContent] = useState({
@@ -43,6 +45,12 @@ const MetroForm = () => {
     setDialogContent({ title, message, isError });
     setDialogOpen(true);
   };
+  useEffect(() => {
+    if (user?.phone_number) {
+      setTeleNumber(user.phone_number.slice(2));
+    }
+  }, [teleNumber,user]);
+  console.log(teleNumber, "teleNumber");
 
   const handleTicketForm = (e) => {
     e.preventDefault();
@@ -77,7 +85,7 @@ const MetroForm = () => {
 
   return (
     <div className="w-full lg:w-96 mx-auto bg-white shadow-lg rounded-lg p-6 border border-gray-200">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+      <h2 className="text-sm md:text-2xl font-bold text-gray-800 mb-6 text-center">
         Metro Ticket Booking
       </h2>
 
@@ -170,22 +178,19 @@ const MetroForm = () => {
           </Select.Root>
         </div>
         {/* Ticket Type */}
-        <div className="flex rounded-md overflow-hidden border border-gray-300">
-          <button
-            type="button"
-            className="flex-1 py-2 bg-teal-500 text-white font-medium text-sm focus:outline-none"
-            disabled
-          >
-            One-way
-          </button>
-          <button
-            type="button"
-            className="flex-1 py-2 bg-gray-200 text-gray-700 font-medium text-sm focus:outline-none"
-            disabled
-          >
-            No Return
-          </button>
-        </div>
+          <div className="flex items-start gap-2 p-[6px] md:p-3 bg-blue-50 border border-blue-100 rounded-lg mb-4">
+      <Info className="flex-shrink-0 h-4 w-4 text-blue-600 mt-0.5" />
+      <div className="flex-1">
+        <p className="text-xs text-blue-800 leading-relaxed">
+          <span className="font-medium">First-time users:</span> Start the{' '}
+          <span className="inline-flex items-center gap-1 text-blue-600 font-medium">
+            <Send className="h-3 w-3" /> Telegram bot
+          </span>
+          , tap &quot;Share Contact&quot;, then enter your Telegram number to book a ticket.
+        </p>
+      </div>
+    </div>
+
 
         {/* Telegram Number Field */}
         <div className="space-y-2">
@@ -198,15 +203,14 @@ const MetroForm = () => {
           <input
             id="telegram"
             type="text"
-            value={(user?.phone_number?.slice(2) || teleNumber)}
-
+            value={teleNumber}
             onChange={(e) => setTeleNumber(e.target.value)}
             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500"
-            placeholder="ex:- 01234567890"
+            placeholder="ex:- 01834567890"
             required
           />
         </div>
-
+    
         {/* Ticket Count */}
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700">
@@ -243,7 +247,11 @@ const MetroForm = () => {
       </form>
 
       {/* Radix Dialog for messages */}
-      <Dialog.Root className="z-50" open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog.Root
+        className="z-50"
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+      >
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
           <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md p-6 bg-white rounded-lg shadow-lg focus:outline-none">

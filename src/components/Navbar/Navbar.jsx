@@ -22,7 +22,7 @@ const Navbar = () => {
 
   const navItems = [
     { name: "Home", path: "/" },
-    { name: "Notification", path: "/notification" },
+    { name: "Notice", path: "/notification" },
     { name: "Permanent Ticket", path: "/permanent-ticket" },
     { 
       name: "Telegram", 

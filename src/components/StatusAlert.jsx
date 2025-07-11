@@ -9,7 +9,6 @@ import {
 
 const StatusAlert = ({ statusCode, message, className = "" }) => {
   const [visible, setVisible] = useState(true);
-  console.log(statusCode)
 
   useEffect(() => {
     const handleEsc = (e) => {
@@ -27,7 +26,7 @@ const StatusAlert = ({ statusCode, message, className = "" }) => {
       return <AlertTriangle className="h-6 w-6 text-yellow-500" />;
     if (statusCode >= 500)
       return <XCircle className="h-6 w-6 text-red-500" />;
-    return <Info className="h-6 w-6 text-gray-500" />;
+    return <Info className="h-6 w-6 text-red-500" />;
   };
 
   const getTitle = () => {
@@ -51,7 +50,7 @@ const StatusAlert = ({ statusCode, message, className = "" }) => {
     if (statusCode >= 200 && statusCode < 300) return type === "bg" ? "green-50" : type === "text" ? "green-800" : "green-700";
     if ([301, 401, 403, 404].includes(statusCode)) return type === "bg" ? "yellow-50" : type === "text" ? "yellow-800" : "yellow-700";
     if (statusCode >= 500) return type === "bg" ? "red-50" : type === "text" ? "red-800" : "red-700";
-    return type === "bg" ? "gray-50" : type === "text" ? "gray-800" : "gray-700";
+    return type === "bg" ? "red-50" : type === "text" ? "red-800" : "red-700";
   };
 
   if (!message || !visible) return null;
@@ -76,9 +75,7 @@ const StatusAlert = ({ statusCode, message, className = "" }) => {
             </h3>
             <p className={`mt-1 text-sm text-${getColor("sub") || getColor("text")}`}>
               {message}
-              {statusCode && (
-                <span className="ml-1 text-xs opacity-70">(Status: {statusCode})</span>
-              )}
+             
             </p>
           </div>
         </div>

@@ -201,32 +201,31 @@ const SettingsPage = () => {
     }
   };
 
- const handleDataUpdate = async (updatedData) => {
-  try {
-    if (!updatedData.nid_no || !updatedData.name) {
-      setError("Name and NID Number are required");
-      return { status: 400 };
+  const handleDataUpdate = async (updatedData) => {
+    try {
+      if (!updatedData.nid_no || !updatedData.name) {
+        setError("Name and NID Number are required");
+        return { status: 400 };
+      }
+
+      console.log("Updated from form:", updatedData);
+
+      const res = await updateUser(updatedData); // returns updated user data
+
+      // ✅ Assume success if it returns without error
+      setAlertStatus(200);
+      setAlertMessage("Profile updated successfully.");
+      setShowManualModal(false);
+      resetForm();
+
+      return { status: 200, data: res }; // include returned user if needed
+    } catch (error) {
+      console.error("Update error:", error);
+      setAlertStatus(error.response?.status || 500);
+      setAlertMessage("Server error occurred.");
+      return { status: 500 };
     }
-
-    console.log("Updated from form:", updatedData);
-
-    const res = await updateUser(updatedData); // returns updated user data
-
-    // ✅ Assume success if it returns without error
-    setAlertStatus(200);
-    setAlertMessage("Profile updated successfully.");
-    setShowManualModal(false);
-    resetForm();
-
-    return { status: 200, data: res }; // include returned user if needed
-  } catch (error) {
-    console.error("Update error:", error);
-    setAlertStatus(error.response?.status || 500);
-    setAlertMessage("Server error occurred.");
-    return { status: 500 };
-  }
-};
-
+  };
 
   const resetForm = () => {
     setNidFront(null);
@@ -435,21 +434,19 @@ const SettingsPage = () => {
                         </div>
                       )}
 
-                      <div className="mt-6 flex justify-end gap-2">
+                      <div className="mt-6 flex flex-col xs:flex-row gap-3">
+                        {/* Submit Button */}
                         <button
                           onClick={() => {
-                            setShowUpdateModal(false);
-                            resetForm();
+                            handleUpdateSubmit();
+                            // Hide manual add if processing
                           }}
-                          className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-                          disabled={isProcessing}
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          onClick={handleUpdateSubmit}
                           disabled={!nidFront || !nidBack || isProcessing}
-                          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-2"
+                          className={`flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors flex items-center justify-center cursor-pointer gap-2 ${
+                            !nidFront || !nidBack || isProcessing
+                              ? "bg-blue-400"
+                              : "bg-blue-600 hover:bg-blue-700"
+                          }`}
                         >
                           {isProcessing ? (
                             <>
@@ -479,6 +476,32 @@ const SettingsPage = () => {
                             "Extract Data"
                           )}
                         </button>
+                        {/* Cancel Button */}
+                        <button
+                          onClick={() => {
+                            setShowUpdateModal(false);
+                            resetForm();
+                          }}
+                          className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                          disabled={isProcessing}
+                        >
+                          Cancel
+                        </button>
+                        {/* Manual Add Button - Only shows when needed */}
+                        {!showManulaModal &&
+                          Object.values(extractedData).some(
+                            (val) => val.trim() == ""
+                          ) && (
+                            <button
+                              onClick={() => {
+                                setShowManualModal(true);
+                                 setShowUpdateModal(false);
+                              }}
+                              className="flex-1 xs:flex-none px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm sm:text-base"
+                            >
+                              Add Manually
+                            </button>
+                          )}
                       </div>
                     </>
                   ) : (
@@ -672,9 +695,9 @@ const SettingsPage = () => {
         </div>
       )}
 
-      {Object.values(extractedData).every((val) => val.trim() === "") && (
+      {/* {Object.values(extractedData).every((val) => val.trim() === "") && (
         <div className="mt-8 text-center text-gray-500 text-5xl">or</div>
-      )}
+      )} */}
 
       {showManulaModal && (
         <UserForm
@@ -683,17 +706,7 @@ const SettingsPage = () => {
           handleDataUpdate={handleDataUpdate}
         />
       )}
-      {!showManulaModal &&
-        Object.values(extractedData).some((val) => val.trim() == "") && (
-          <div className="mt-4 text-center">
-            <button
-              onClick={() => setShowManualModal(true)}
-              className="mt-4 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Add Profile Manually
-            </button>
-          </div>
-        )}
+
       {alertMessage && (
         <StatusAlert statusCode={alertStatus} message={alertMessage} />
       )}

@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import PermanentTicketSkeleton from "../../components/skeleton/PermanentTicketSkeleton";
 import { jsPDF } from "jspdf";
 import { useUser } from "../../context/UserContext";
+import StatusAlert from "../../components/StatusAlert";
 
 const PermanentTicketPage = () => {
   const { token } = useAuth();
@@ -11,6 +12,8 @@ const PermanentTicketPage = () => {
   const [ticket, setTicket] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [alertStatus, setAlertStatus] = useState(null);
+  const [alertMessage, setAlertMessage] = useState("");
   const [formData, setFormData] = useState({
     validity_years: 2,
     telegram_number: "",
@@ -21,6 +24,23 @@ const PermanentTicketPage = () => {
     reset: false,
     delete: false,
   });
+  const [missingFields, setMissingFields] = useState([]);
+
+  // Minimum balance requirements
+  const MIN_BALANCE = {
+    2: 100,
+    5: 200,
+    10: 300,
+  };
+
+  useEffect(() => {
+    if (user?.phone_number) {
+      setFormData((prev) => ({
+        ...prev,
+        telegram_number: user.phone_number.slice(2),
+      }));
+    }
+  }, [user]);
 
   // Fetch ticket data
   useEffect(() => {
@@ -40,6 +60,7 @@ const PermanentTicketPage = () => {
           telegram_number: response.data.telegram_number || "",
         });
         setError(null);
+        setMissingFields([]);
       } catch (err) {
         if (err.response?.status === 404) {
           setTicket(null);
@@ -54,28 +75,6 @@ const PermanentTicketPage = () => {
 
     if (token) fetchTicket();
   }, [token]);
-
-  const handleCreate = async (e) => {
-    e.preventDefault();
-    setActionLoading({ ...actionLoading, create: true });
-    try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_SERVER_URL}/permanent-journey/ticket/create`,
-        formData,
-        {
-          headers: {
-            Authorization: `Token ${token}`,
-          },
-        }
-      );
-      setTicket(response.data);
-      setError(null);
-    } catch (err) {
-      setError(err.response?.data || "Failed to create ticket");
-    } finally {
-      setActionLoading({ ...actionLoading, create: false });
-    }
-  };
 
   const handleUpdate = async (e) => {
     e.preventDefault();
@@ -92,10 +91,78 @@ const PermanentTicketPage = () => {
       );
       setTicket(response.data);
       setError(null);
+      setAlertStatus(200); // Success status
+      setAlertMessage("Ticket updated successfully!");
     } catch (err) {
-      setError(err.response?.data || "Failed to update ticket");
+      let errorMessage = "Failed to update ticket";
+      let statusCode = 400; // Default error status
+
+      if (err.response) {
+        statusCode = err.response.status;
+        if (err.response.data?.error) {
+          errorMessage = err.response.data.error;
+          // Handle specific error cases
+          if (errorMessage.includes("minimum wallet balance")) {
+            const years = formData.validity_years;
+            errorMessage = `You need a minimum wallet balance of ${MIN_BALANCE[years]}.00 BDT for ${years} years.`;
+          } else if (errorMessage.includes("Update charge required")) {
+            errorMessage = `Ticket not updated because not enough balance. ${errorMessage}`;
+          }
+        }
+      }
+
+      setError(errorMessage);
+      setAlertStatus(statusCode);
+      setAlertMessage(errorMessage);
     } finally {
       setActionLoading({ ...actionLoading, update: false });
+    }
+  };
+
+  const handleCreate = async (e) => {
+    e.preventDefault();
+    setActionLoading({ ...actionLoading, create: true });
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_SERVER_URL}/permanent-journey/ticket/create`,
+        formData,
+        {
+          headers: {
+            Authorization: `Token ${token}`,
+          },
+        }
+      );
+      setTicket(response.data);
+      setError(null);
+      setMissingFields([]);
+      setAlertStatus(201); // Created status
+      setAlertMessage("Ticket created successfully!");
+    } catch (err) {
+      let errorMessage = "Failed to create ticket";
+      let statusCode = 400; // Default error status
+      let missingFields = [];
+
+      if (err.response) {
+        statusCode = err.response.status;
+        if (err.response.data?.error) {
+          errorMessage = err.response.data.error;
+          // Handle specific error cases
+          if (errorMessage === "User does not have enough data.") {
+            missingFields = err.response.data.missing_fields || [];
+            errorMessage = "Please complete your profile information";
+          } else if (errorMessage.includes("minimum wallet balance")) {
+            const years = formData.validity_years;
+            errorMessage = `You need a minimum wallet balance of ${MIN_BALANCE[years]}.00 BDT for ${years} years.`;
+          }
+        }
+      }
+
+      setError(errorMessage);
+      setMissingFields(missingFields);
+      setAlertStatus(statusCode);
+      setAlertMessage(errorMessage);
+    } finally {
+      setActionLoading({ ...actionLoading, create: false });
     }
   };
 
@@ -192,39 +259,63 @@ const PermanentTicketPage = () => {
     return <PermanentTicketSkeleton />;
   }
 
-  if (
-    error &&
-    (!error.detail || error.detail !== "Permanent ticket not found.")
-  ) {
-    return (
-      <div className="container mx-auto px-4 py-8 max-w-3xl">
-        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg shadow-sm">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <svg
-                className="h-5 w-5 text-red-500"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">
-                {typeof error === "object"
-                  ? error.detail || JSON.stringify(error)
-                  : error.toString()}
-              </h3>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // const renderError = () => {
+  //   if (!error) return null;
+
+  //   let errorMessage = "";
+  //   if (typeof error === "object") {
+  //     if (error.error) {
+  //       errorMessage = error.error;
+  //       if (errorMessage.includes("minimum wallet balance")) {
+  //         const years = formData.validity_years;
+  //         errorMessage = `You need a minimum wallet balance of ${MIN_BALANCE[years]}.00 BDT for ${years} years.`;
+  //       } else if (errorMessage.includes("Update charge required")) {
+  //         errorMessage = `Ticket not updated because not enough balance. ${error.error}`;
+  //       }
+  //     } else {
+  //       errorMessage = JSON.stringify(error);
+  //     }
+  //   } else {
+  //     errorMessage = error.toString();
+  //   }
+
+  //   return (
+  //     <div className="container mx-auto px-4 py-8 max-w-3xl">
+  //       <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg shadow-sm">
+  //         <div className="flex items-center">
+  //           <div className="flex-shrink-0">
+  //             <svg
+  //               className="h-5 w-5 text-red-500"
+  //               viewBox="0 0 20 20"
+  //               fill="currentColor"
+  //             >
+  //               <path
+  //                 fillRule="evenodd"
+  //                 d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+  //                 clipRule="evenodd"
+  //               />
+  //             </svg>
+  //           </div>
+  //           <div className="ml-3">
+  //             <h3 className="text-sm font-medium text-red-800">
+  //               {errorMessage}
+  //             </h3>
+  //             {missingFields.length > 0 && (
+  //               <div className="mt-2">
+  //                 <p className="text-xs text-red-700">Missing fields in your profile:</p>
+  //                 <ul className="list-disc list-inside text-xs text-red-700">
+  //                   {missingFields.map((field) => (
+  //                     <li key={field}>{field}</li>
+  //                   ))}
+  //                 </ul>
+  //               </div>
+  //             )}
+  //           </div>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // };
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -239,6 +330,11 @@ const PermanentTicketPage = () => {
               : "Manage your existing ticket"}
           </p>
         </div>
+
+        {/* {renderError()} */}
+        {alertMessage && (
+          <StatusAlert statusCode={alertStatus} message={alertMessage} />
+        )}
 
         {!ticket ? (
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-5 mb-5">
@@ -257,10 +353,14 @@ const PermanentTicketPage = () => {
                   className="w-full px-3 py-2 text-xs border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   required
                 >
-                  <option value={2}>2 Years (100 TK)</option>
-                  <option value={5}>5 Years (200 TK)</option>
-                  <option value={10}>10 Years (300TK)</option>
+                  <option value={2}>2 Years (100 BDT)</option>
+                  <option value={5}>5 Years (200 BDT)</option>
+                  <option value={10}>10 Years (300 BDT)</option>
                 </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Your wallet will be charged{" "}
+                  {MIN_BALANCE[formData.validity_years]} BDT
+                </p>
               </div>
 
               <div className="mb-5">
@@ -277,6 +377,9 @@ const PermanentTicketPage = () => {
                   placeholder="e.g. 01712345678"
                   className="w-full px-3 py-2 text-xs border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Provide your Telegram number for notifications
+                </p>
               </div>
 
               <button
@@ -360,6 +463,16 @@ const PermanentTicketPage = () => {
                     {new Date(ticket.updated_at).toLocaleDateString()}
                   </p>
                 </div>
+                {ticket.telegram_number && (
+                  <div className="bg-gray-50 p-3 rounded-md">
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">
+                      Telegram Number
+                    </p>
+                    <p className="text-sm font-medium text-gray-800">
+                      {ticket.telegram_number}
+                    </p>
+                  </div>
+                )}
               </div>
 
               {ticket.qr_code && (
@@ -414,16 +527,35 @@ const PermanentTicketPage = () => {
                     className="w-full px-3 py-2 text-xs border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     required
                   >
-                    <option value={2}>2 Years</option>
-                    <option value={5}>5 Years</option>
-                    <option value={10}>10 Years</option>
+                    <option value={2}>2 Years (100 BDT)</option>
+                    <option value={5}>5 Years (200 BDT)</option>
+                    <option value={10}>10 Years (300 BDT)</option>
                   </select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {formData.validity_years !== ticket.validity_years && (
+                      <>
+                        Update charge:{" "}
+                        {Math.abs(
+                          MIN_BALANCE[formData.validity_years] -
+                            MIN_BALANCE[ticket.validity_years]
+                        )}
+                        .00 BDT
+                      </>
+                    )}
+                  </p>
                 </div>
 
                 <button
                   type="submit"
-                  disabled={actionLoading.update}
-                  className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition duration-200 mb-4 flex justify-center items-center text-sm"
+                  disabled={
+                    actionLoading.update ||
+                    formData.validity_years === ticket.validity_years
+                  }
+                  className={`w-full text-white py-2 px-4 rounded-md transition duration-200 mb-4 flex justify-center items-center text-sm ${
+                    formData.validity_years === ticket.validity_years
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-indigo-600 hover:bg-indigo-700"
+                  }`}
                 >
                   {actionLoading.update ? (
                     <>
@@ -449,6 +581,8 @@ const PermanentTicketPage = () => {
                       </svg>
                       Updating...
                     </>
+                  ) : formData.validity_years === ticket.validity_years ? (
+                    "No changes to update"
                   ) : (
                     "Update Validity Period"
                   )}

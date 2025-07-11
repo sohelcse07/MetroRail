@@ -34,9 +34,7 @@ const Profile = () => {
     setAlertMessage("");
   };
 
-  const handleCancelEdit = () => {
-    setShowModalForm(false);
-  };
+  
 
   const handleDataUpdate = async (updatedData) => {
     try {

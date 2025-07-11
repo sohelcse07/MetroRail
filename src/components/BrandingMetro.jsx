@@ -98,7 +98,7 @@ const BrandingMetro = () => {
                   </li>
                   <li className="flex items-start gap-2">
                     <Scan className="h-5 w-5 text-blue-500 mt-0.5" />
-                    <span>Daily automatic validation</span>
+                    <span> Automatic fair calculation</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <UserCheck className="h-5 w-5 text-blue-500 mt-0.5" />
