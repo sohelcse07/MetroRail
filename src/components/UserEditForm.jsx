@@ -7,6 +7,7 @@ const UserEditForm = ({
   error,
   setShowUpdateModal
 }) => {
+  console.log(extractedData)
 
   return (
     <div className="space-y-4">

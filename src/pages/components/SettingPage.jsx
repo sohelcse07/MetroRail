@@ -202,6 +202,7 @@ const SettingsPage = () => {
   };
 
   const handleDataUpdate = async (updatedData) => {
+    console.log(updatedData);
     try {
       if (!updatedData.nid_no || !updatedData.name) {
         setError("Name and NID Number are required");
@@ -495,7 +496,7 @@ const SettingsPage = () => {
                             <button
                               onClick={() => {
                                 setShowManualModal(true);
-                                 setShowUpdateModal(false);
+                                setShowUpdateModal(false);
                               }}
                               className="flex-1 xs:flex-none px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm sm:text-base"
                             >
@@ -625,7 +626,10 @@ const SettingsPage = () => {
                           Back
                         </button>
                         <button
-                          onClick={handleDataUpdate}
+                          onClick={() => {
+                            handleDataUpdate(extractedData);
+                            setShowUpdateModal(false);
+                          }}
                           className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
                         >
                           Save Changes
