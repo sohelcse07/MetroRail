@@ -49,8 +49,7 @@ const MetroForm = () => {
     if (user?.phone_number) {
       setTeleNumber(user.phone_number.slice(2));
     }
-  }, [teleNumber,user]);
-  console.log(teleNumber, "teleNumber");
+  }, [user]);
 
   const handleTicketForm = (e) => {
     e.preventDefault();

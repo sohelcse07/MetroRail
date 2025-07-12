@@ -371,7 +371,7 @@ const PermanentTicketPage = () => {
                   type="text"
                   name="telegram_number"
                   value={
-                    user?.phone_number?.slice(2) || formData.telegram_number
+                    formData.telegram_number
                   }
                   onChange={handleChange}
                   placeholder="e.g. 01712345678"
