@@ -1,10 +1,25 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import TrainSvg from '../components/TrainSvg';
 import { Train, Ticket, Scan, QrCode, Smartphone, Clock, Zap, UserCheck } from 'lucide-react';
 
 const BrandingMetro = () => {
   const [ticketType, setTicketType] = useState('single');
   const [showQR, setShowQR] = useState(false);
+
+  // Train animation variants
+  const trainVariants = {
+    initial: { x: '100%' },
+    animate: { 
+      x: '-100%',
+      transition: {
+        duration: 5,
+        ease: "linear",
+        repeat: Infinity,
+        repeatType: "loop"
+      }
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
@@ -21,7 +36,6 @@ const BrandingMetro = () => {
                 <p className="text-sm text-gray-600">Seamless Urban Mobility</p>
               </div>
             </div>
-            
           </div>
         </div>
       </header>
@@ -47,10 +61,12 @@ const BrandingMetro = () => {
         <div className="grid md:grid-cols-2 gap-8 mb-16">
           {/* Ticket Selection */}
           <div className="bg-white rounded-2xl shadow-xl p-8">
-            
             <div className="grid grid-cols-2 gap-4 mb-8">
               <button
-                onClick={() => setTicketType('single')}
+                onClick={() => {
+                  setTicketType('single');
+                  setShowQR(false);
+                }}
                 className={`flex flex-col items-center justify-center p-6 rounded-xl border-2 transition-all ${ticketType === 'single' ? 'border-blue-600 bg-blue-50' : 'border-gray-200 hover:border-blue-300'}`}
               >
                 <Ticket className={`h-8 w-8 mb-2 ${ticketType === 'single' ? 'text-blue-600' : 'text-gray-400'}`} />
@@ -59,7 +75,10 @@ const BrandingMetro = () => {
               </button>
               
               <button
-                onClick={() => setTicketType('permanent')}
+                onClick={() => {
+                  setTicketType('permanent');
+                  setShowQR(false);
+                }}
                 className={`flex flex-col items-center justify-center p-6 rounded-xl border-2 transition-all ${ticketType === 'permanent' ? 'border-blue-600 bg-blue-50' : 'border-gray-200 hover:border-blue-300'}`}
               >
                 <Clock className={`h-8 w-8 mb-2 ${ticketType === 'permanent' ? 'text-blue-600' : 'text-gray-400'}`} />
@@ -86,7 +105,7 @@ const BrandingMetro = () => {
                     <span>Valid for one journey within 2 hours</span>
                   </li>
                 </ul>
-                
+              
               </div>
             ) : (
               <div className="space-y-4">
@@ -98,7 +117,7 @@ const BrandingMetro = () => {
                   </li>
                   <li className="flex items-start gap-2">
                     <Scan className="h-5 w-5 text-blue-500 mt-0.5" />
-                    <span> Automatic fair calculation</span>
+                    <span>Automatic fare calculation</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <UserCheck className="h-5 w-5 text-blue-500 mt-0.5" />
@@ -116,7 +135,6 @@ const BrandingMetro = () => {
               <>
                 <div className="bg-white p-4 rounded-lg border border-gray-200 mb-6">
                   <div className="w-48 h-48 bg-gray-100 flex items-center justify-center">
-                    {/* Placeholder for QR code */}
                     <QrCode className="h-32 w-32 text-gray-400" />
                   </div>
                 </div>
@@ -126,9 +144,14 @@ const BrandingMetro = () => {
                 <p className="text-gray-600 mb-6 text-center">
                   {ticketType === 'single' 
                     ? 'Scan this QR code at station gates.'
-                    : ' QR for Telegram bot for automatic daily validation.'}
+                    : 'QR for Telegram bot for automatic daily validation.'}
                 </p>
-                
+                <button
+                  onClick={() => setShowQR(false)}
+                  className="text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  Back to options
+                </button>
               </>
             ) : (
               <>
@@ -157,8 +180,15 @@ const BrandingMetro = () => {
             </div>
           </div>
           
-          <div className="bg-gray-50 rounded-xl p-6 overflow-x-auto">
-            <TrainSvg />
+          <div className="bg-gray-50 rounded-xl p-6 overflow-x-hidden relative h-24">
+            <motion.div
+              className="absolute top-0 left-0 w-full h-full"
+              variants={trainVariants}
+              initial="initial"
+              animate="animate"
+            >
+              <TrainSvg className="absolute" style={{ right: '100%' }} />
+            </motion.div>
           </div>
         </div>
 
@@ -195,11 +225,7 @@ const BrandingMetro = () => {
             </div>
           </div>
         </div>
-
-      
       </main>
-
-    
     </div>
   );
 }
