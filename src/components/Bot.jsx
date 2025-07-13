@@ -35,15 +35,15 @@ const Bot = () => {
     setMessage("");
 
     try {
+      const headers = {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Token ${token}` }),
+      };
+
       const response = await axios.post(
         "https://metro-rail-smart-ticket.onrender.com/chatbot/api/customer-care",
         { user_question: message },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Token ${token}`,
-          },
-        }
+        { headers }
       );
 
       const botMessage = { sender: "bot", text: response.data.response };
