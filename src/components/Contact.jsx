@@ -39,7 +39,7 @@ const Contact = ({ isModal = false }) => {
         to_name: 'Support Team', 
         from_name: `${formData.firstname} ${formData.lastname}`.trim(),
         date: new Date().toLocaleDateString(),
-        company_name: 'Metro Station'
+        from_email: formData.email,
       };
 
       const response = await emailjs.send(
