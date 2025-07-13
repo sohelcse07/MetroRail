@@ -56,6 +56,7 @@ const Notification = () => {
       setNewCommentMap(initialNewComments);
     }
   }, [notifications]);
+  
 
   // Fetch all notifications
   const fetchNotifications = useCallback(async () => {
@@ -78,48 +79,60 @@ const Notification = () => {
 
   // Fetch comments and reactions for a notification
   const fetchNotificationDetails = useCallback(async (notificationId) => {
-    try {
-      setLoading(prev => ({ 
-        ...prev, 
-        details: true,
-        comments: { ...prev.comments, [notificationId]: true },
-        reactions: { ...prev.reactions, [notificationId]: true }
-      }));
+  try {
+    setLoading(prev => ({ 
+      ...prev, 
+      details: true,
+      comments: { ...prev.comments, [notificationId]: true },
+      reactions: { ...prev.reactions, [notificationId]: true }
+    }));
 
-      const [commentsRes, reactionsRes] = await Promise.all([
-        fetch(`${BASE_URL}/notification/comments-list/${notificationId}`),
-        fetch(`${BASE_URL}/notification/reactions-list/${notificationId}`)
-      ]);
+    const [commentsRes, reactionsRes] = await Promise.all([
+      fetch(`${BASE_URL}/notification/comments-list/${notificationId}`),
+      fetch(`${BASE_URL}/notification/reactions-list/${notificationId}`)
+    ]);
 
-      if (!commentsRes.ok || !reactionsRes.ok) {
-        throw new Error('Failed to fetch notification details');
-      }
-
-      const [commentsData, reactionsData] = await Promise.all([
-        commentsRes.json(),
-        reactionsRes.json()
-      ]);
-
-      setCommentsMap(prev => ({
-        ...prev,
-        [notificationId]: commentsData.results || []
-      }));
-
-      setReactionsMap(prev => ({
-        ...prev,
-        [notificationId]: reactionsData.results || []
-      }));
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(prev => ({ 
-        ...prev, 
-        details: false,
-        comments: { ...prev.comments, [notificationId]: false },
-        reactions: { ...prev.reactions, [notificationId]: false }
-      }));
+    if (!commentsRes.ok || !reactionsRes.ok) {
+      throw new Error('Failed to fetch notification details');
     }
-  }, []);
+
+    const [commentsData, reactionsData] = await Promise.all([
+      commentsRes.json(),
+      reactionsRes.json()
+    ]);
+
+    // ✅ Log the raw fetched data instead of waiting for state to update
+    console.log(reactionsData.results, `✅ Fetched reactions for notification ${notificationId}`);
+
+    setCommentsMap(prev => ({
+      ...prev,
+      [notificationId]: commentsData.results || []
+    }));
+
+    setReactionsMap(prev => ({
+      ...prev,
+      [notificationId]: reactionsData.results || []
+    }));
+
+  } catch (err) {
+    setError(err.message);
+  } finally {
+    setLoading(prev => ({ 
+      ...prev, 
+      details: false,
+      comments: { ...prev.comments, [notificationId]: false },
+      reactions: { ...prev.reactions, [notificationId]: false }
+    }));
+  }
+}, []);
+
+useEffect(() => {
+  if (notifications.length > 0) {
+    notifications.forEach(notification => {
+      fetchNotificationDetails(notification.id);
+    });
+  }
+}, [notifications, fetchNotificationDetails]);
 
   const toggleExpandNotification = useCallback((notificationId) => {
     if (expandedNotificationId === notificationId) {
@@ -251,12 +264,20 @@ const Notification = () => {
   }, [token, user]);
 
   // Get user's reaction to a specific notification
-  const getUserReaction = useCallback((notificationId) => {
-    if (!user?.id) return null;
-    const notificationReactions = reactionsMap[notificationId] || [];
-    const userReaction = notificationReactions.find(r => r.user === user.id);
-    return userReaction ? userReaction.reaction : null;
-  }, [user, reactionsMap]);
+ const getUserReaction = useCallback((notificationId) => {
+  console.log(notificationId, 'Notification ID for user reaction');
+  if (!user?.phone_number) return null;
+
+  const notificationReactions = reactionsMap[notificationId] || [];
+  console.log(notificationReactions, 'Notification Reactions');
+
+  const userReaction = notificationReactions.find(
+    r => r.user === user.phone_number
+  );
+
+  return userReaction ? userReaction.reaction : null;
+}, [user, reactionsMap]);
+
 
   // Get reaction icon component
   const getReactionIcon = useCallback((reaction, size = 'text-base') => {
@@ -328,12 +349,11 @@ const Notification = () => {
         {notifications.map(notification => {
           const notificationId = notification.id;
           const isExpanded = expandedNotificationId === notificationId;
-          const comments = commentsMap[notificationId] || [];
+         const comments = (commentsMap[notificationId] || []).slice().reverse();
+
           const showReactionPicker = showReactionPickerMap[notificationId] || false;
           const newComment = newCommentMap[notificationId] || '';
           const userReaction = getUserReaction(notificationId);
-          const reactions = reactionsMap[notificationId] || [];
-          // const reactionCount = reactions.length;
 
           return (
             <div 
